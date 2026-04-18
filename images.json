@@ -1,0 +1,82 @@
+{
+  "projects": [
+    {
+      "id": 1,
+      "image": "img/project1-jalan.jpg",
+      "alt": "Pasir Konstruksi",
+      "tag": "Pasir",
+      "title_id": "Pasir Konstruksi Berkualitas",
+      "title_en": "Quality Construction Sand",
+      "description_id": "Pasir bersih dan terukur untuk beton, plesteran, dan pengecoran berkualitas SNI",
+      "description_en": "Clean and measured sand for quality concrete, plaster, and casting",
+      "meta1_id": "Stok: Tersedia",
+      "meta1_en": "Stock: Available",
+      "meta2": "Siap Kirim"
+    },
+    {
+      "id": 2,
+      "image": "img/project2-limestone.jpg",
+      "alt": "Limestone Premium",
+      "tag": "Limestone",
+      "title_id": "Limestone Premium Grade",
+      "title_en": "Premium Grade Limestone",
+      "description_id": "Material limestone putih untuk pondasi jalan, material stabil dengan daya dukung maksimal",
+      "description_en": "White limestone material for road foundation, stable material with maximum bearing capacity",
+      "meta1_id": "Ukuran: 10-20mm",
+      "meta1_en": "Size: 10-20mm",
+      "meta2": "Siap Kirim"
+    },
+    {
+      "id": 3,
+      "image": "img/project3-pemeliharaan.jpg",
+      "alt": "Batu Belah",
+      "tag": "Batu Belah",
+      "title_id": "Batu Belah Alam (Batu Kali)",
+      "title_en": "Natural Split Stone (Batu Kali)",
+      "description_id": "Batu belah berkualitas untuk pondasi, penahan tanah, dan saluran dengan daya tahan tinggi",
+      "description_en": "Quality split stone for foundation, retaining wall, and drainage with high durability",
+      "meta1_id": "Ukuran: Bervariasi",
+      "meta1_en": "Size: Various",
+      "meta2": "Siap Kirim"
+    },
+    {
+      "id": 4,
+      "image": "img/project4-basecourse.jpg",
+      "alt": "Basecourse",
+      "tag": "Basecourse",
+      "title_id": "Basecourse A & B - Lapis Pondasi",
+      "title_en": "Basecourse A & B - Foundation Layer",
+      "description_id": "Material lapis pondasi atas (A) dan bawah (B) dengan gradasi terbaik sesuai spesifikasi teknis",
+      "description_en": "Upper (A) and lower (B) foundation layer material with best gradation per technical specifications",
+      "meta1_id": "Kualitas: Grade A & B",
+      "meta1_en": "Quality: Grade A & B",
+      "meta2": "Siap Kirim"
+    },
+    {
+      "id": 5,
+      "image": "img/project5-aspal.jpg",
+      "alt": "Batu Split",
+      "tag": "Batu Split",
+      "title_id": "Batu Split/Pecah Berbagai Ukuran",
+      "title_en": "Split/Crushed Stone Various Sizes",
+      "description_id": "Batu split 1/2\", 2/3\" untuk beton ready mix, pengaspalan, dan konstruksi umum",
+      "description_en": "Split stone 1/2\", 2/3\" for ready mix concrete, asphalt, and general construction",
+      "meta1_id": "Ukuran: 1/2\", 2/3\"",
+      "meta1_en": "Size: 1/2\", 2/3\"",
+      "meta2": "Siap Kirim"
+    },
+    {
+      "id": 6,
+      "image": "img/project6-supplier.jpg",
+      "alt": "Material Lengkap",
+      "tag": "Supplier",
+      "title_id": "Solusi Material Lengkap",
+      "title_en": "Complete Material Solution",
+      "description_id": "Kami menyediakan berbagai jenis material alam dengan harga kompetitif dan layanan pengiriman cepat",
+      "description_en": "We provide various types of natural materials with competitive prices and fast delivery service",
+      "meta1_id": "Jangkauan: Jabodetabek",
+      "meta1_en": "Coverage: Jabodetabek",
+      "meta2": "Siap Kirim"
+    }
+  ]
+}

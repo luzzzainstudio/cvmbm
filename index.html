@@ -12,217 +12,80 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<!-- Playables SDK -->
-<script>// Playables SDK v1.0.0
-// Game lifecycle bridge: rAF-based game-ready detection + event communication
-(function() {
-  'use strict';
-
-  // Idempotency: skip if already initialized (e.g., server-side injection
-  // followed by client-side inject-javascript via the Bloks webview component).
-  if (window.playablesSDK) return;
-
-  var HANDLER_NAME = 'playablesGameEventHandler';
-  var ANDROID_BRIDGE_NAME = '_MetaPlayablesBridge';
-  var RAF_FRAME_THRESHOLD = 3;
-
-  var gameReadySent = false;
-  var firstInteractionSent = false;
-  var errorSent = false;
-  var frameCount = 0;
-  var originalRAF = window.requestAnimationFrame;
-
-  // --- Transport Layer ---
-
-  function hasIOSBridge() {
-    return !!(window.webkit &&
-              window.webkit.messageHandlers &&
-              window.webkit.messageHandlers[HANDLER_NAME]);
-  }
-
-  function hasAndroidBridge() {
-    return !!(window[ANDROID_BRIDGE_NAME] &&
-              typeof window[ANDROID_BRIDGE_NAME].postEvent === 'function');
-  }
-
-  function isInIframe() {
-    return !!(window.parent && window.parent !== window);
-  }
-
-  function sendEvent(eventName, payload) {
-    var message = {
-      type: eventName,
-      payload: payload || {},
-      timestamp: Date.now()
-    };
-
-    if (hasIOSBridge()) {
-      try {
-        window.webkit.messageHandlers[HANDLER_NAME].postMessage(message);
-      } catch (e) { /* ignore */ }
-      return;
-    }
-
-    if (hasAndroidBridge()) {
-    try {
-      var p = payload || {};
-      p.__secureToken = window.__fbAndroidBridgeAuthToken || '';
-      window[ANDROID_BRIDGE_NAME].postEvent(
-        eventName,
-        JSON.stringify(p)
-      );
-    } catch (e) { /* ignore */ }
-    return;
-  }
-
-    if (isInIframe()) {
-      try {
-        window.parent.postMessage(message, '*');
-      } catch (e) { /* ignore */ }
-      return;
-    }
-  }
-
-  // --- rAF Game-Ready Detection ---
-
-  function onFrame() {
-    if (gameReadySent) return;
-
-    frameCount++;
-    if (frameCount >= RAF_FRAME_THRESHOLD) {
-      gameReadySent = true;
-      sendEvent('game_ready', {
-        frame_count: frameCount,
-        detected_at: Date.now()
-      });
-      return;
-    }
-
-    originalRAF.call(window, onFrame);
-  }
-
-  if (originalRAF) {
-    window.requestAnimationFrame = function(callback) {
-      if (!gameReadySent) {
-        return originalRAF.call(window, function(timestamp) {
-          frameCount++;
-          if (frameCount >= RAF_FRAME_THRESHOLD && !gameReadySent) {
-            gameReadySent = true;
-            sendEvent('game_ready', {
-              frame_count: frameCount,
-              detected_at: Date.now()
-            });
-          }
-          callback(timestamp);
-        });
-      }
-      return originalRAF.call(window, callback);
-    };
-  }
-
-  // --- First User Interaction Detection ---
-
-  function setupFirstInteractionDetection() {
-    var events = ['touchstart', 'mousedown', 'keydown'];
-
-    function onFirstInteraction() {
-      if (firstInteractionSent) return;
-      firstInteractionSent = true;
-      sendEvent('user_interaction_start', null);
-
-      for (var i = 0; i < events.length; i++) {
-        document.removeEventListener(events[i], onFirstInteraction, true);
-      }
-    }
-
-    for (var i = 0; i < events.length; i++) {
-      document.addEventListener(events[i], onFirstInteraction, true);
-    }
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupFirstInteractionDetection);
-  } else {
-    setupFirstInteractionDetection();
-  }
-
-  // --- Auto Error Capture ---
-
-  window.addEventListener('error', function(event) {
-    if (errorSent) return;
-    errorSent = true;
-    sendEvent('error', {
-      message: event.message || 'Unknown error',
-      source: event.filename || '',
-      lineno: event.lineno || 0,
-      colno: event.colno || 0,
-      auto_captured: true
-    });
-  });
-
-  window.addEventListener('unhandledrejection', function(event) {
-    if (errorSent) return;
-    errorSent = true;
-    var reason = event.reason;
-    sendEvent('error', {
-      message: (reason instanceof Error) ? reason.message : String(reason),
-      type: 'unhandled_promise_rejection',
-      auto_captured: true
-    });
-  });
-
-  // --- Public API ---
-
-  window.playablesSDK = {
-    complete: function(score) {
-      sendEvent('game_ended', {
-        score: score,
-        completed: true
-      });
-    },
-
-    error: function(message) {
-      if (errorSent) return;
-      errorSent = true;
-      sendEvent('error', {
-        message: message || 'Unknown error',
-        auto_captured: false
-      });
-    },
-
-    sendEvent: function(eventName, payload) {
-      if (!eventName || typeof eventName !== 'string') return;
-      sendEvent(eventName, payload);
-    }
-  };
-
-  // Kick off rAF detection in case no game code calls rAF immediately
-  if (originalRAF) {
-    originalRAF.call(window, onFrame);
-  }
-})();</script>
-<script>window.Intl=window.Intl||{};Intl.t=function(s){return(Intl._locale&&Intl._locale[s])||s;};</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CV. MAISAN BINTANG MUDA - Kontraktor Pondasi Jalan</title>
-<meta name="description" content="CV. Maisan Bintang Muda adalah kontraktor berpengalaman di bidang pondasi jalan, pemeliharaan jalan, dan penyediaan material berkualitas untuk proyek konstruksi di seluruh Indonesia.">
-<meta name="keywords" content="kontraktor pondasi jalan, kontraktor jalan, pemeliharaan jalan, limestone, base course, aspal, konstruksi, Indonesia">
+<meta name="description" content="CV. Maisan Bintang Muda adalah kontraktor berpengalaman di bidang pondasi jalan dan penyediaan material konstruksi seperti limestone, basecourse, pasir, dan batu alam.">
+<meta name="keywords" content="kontraktor pondasi jalan, supplier pasir, batu split, batu kali, limestone, base course, konstruksi, Bekasi, Cikarang">
 <meta property="og:title" content="CV. MAISAN BINTANG MUDA - Kontraktor Pondasi Jalan">
 <meta property="og:description" content="Layanan kontraktor profesional untuk pondasi jalan, pemeliharaan, dan material konstruksi berkualitas.">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="CV. MAISAN BINTANG MUDA - Kontraktor Pondasi Jalan">
 <meta name="twitter:description" content="Layanan kontraktor profesional untuk pondasi jalan dan konstruksi.">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="robots" content="index, follow">
+<meta name="author" content="CV. Maisan Bintang Muda">
+<link rel="canonical" href="https://maisanbintangmuda.com">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%2300529C'>M</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<!-- Structured Data (JSON-LD) for SEO -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "GeneralContractor",
+  "name": "CV. Maisan Bintang Muda",
+  "image": "https://maisanbintangmuda.com/mbm%20logo%20new.png",
+  "url": "https://maisanbintangmuda.com",
+  "telephone": "+6281311578023",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Jl. Raya Tegal Danas - Deltamas No.26, Kp. Kandang Gereng RT01/RW04 Ds. Hegarmukti",
+    "addressLocality": "Cikarang Pusat, Bekasi",
+    "postalCode": "17530",
+    "addressCountry": "ID"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": -6.3621,
+    "longitude": 107.1725
+  },
+  "openingHoursSpecification": {
+    "@type": "OpeningHoursSpecification",
+    "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    "opens": "08:00",
+    "closes": "17:00"
+  }
+}
+</script>
+<!-- Netlify Identity Widget -->
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <style>
 :root{--blue:#00529C;--red:#E30613;--navy:#0A1931;--gray:#F5F7FA;--text:#1f2937;--muted:#6b7280}
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
-body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:#FFFFFF;color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  background:#FFFFFF;
+  color:var(--text);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  /* Proteksi Seleksi Teks Global */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+/* Kecualikan Input agar Admin tetap bisa mengetik password/search */
+input, textarea {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
 img{max-width:100%;display:block}
-.container{max-width:1200px;margin:0 auto;padding:0 20px}
+.container{max-width:1400px;width:94%;margin:0 auto;padding:0 20px}
 
 /* Topbar */
 .topbar{background:#f8f9fa;border-bottom:1px solid #e5e7eb;font-size:12px;color:var(--muted);padding:8px 0}
@@ -230,11 +93,11 @@ img{max-width:100%;display:block}
 .topbar-right{display:flex;gap:20px;flex-wrap:wrap}
 
 /* Navbar */
-.navbar{position:sticky;top:0;background:#fff;z-index:1000;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.navbar{position:sticky;top:0;background:#fff;z-index:1000;box-shadow:0 1px 3px rgba(0,0,0,.06);width:100%}
 .nav-container{display:flex;align-items:center;justify-content:space-between;height:72px;gap:20px}
 .logo{display:flex;align-items:center;gap:12px;text-decoration:none}
 .logo-box{width:44px;height:44px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;border-radius:4px}
-.logo-text strong{display:block;font-size:14px;color:var(--navy);line-height:1.1}
+.logo-text strong{display:block;font-size:14px;color:var(--navy);line-height:1.1;white-space:normal}
 .logo-text span{font-size:11px;color:var(--muted);letter-spacing:.5px}
 .nav-menu{display:flex;list-style:none;gap:30px}
 .nav-menu a{color:var(--navy);text-decoration:none;font-size:14px;font-weight:500;letter-spacing:.2px;padding:8px 0;position:relative;text-transform:uppercase}
@@ -251,10 +114,10 @@ img{max-width:100%;display:block}
 .hero::before{content:'';position:absolute;inset:0;background:rgba(10,25,49,.4)}
 .hero-content{position:relative;z-index:2;color:#fff;width:100%}
 .hero h1{font-size:clamp(32px,4.8vw,54px);font-weight:700;line-height:1.15;max-width:800px;margin-bottom:10px}
-.red-line{width:60px;height:4px;background:var(--red);margin:18px 0 22px}
-.hero p{font-size:clamp(16px,1.7vw,19px);max-width:680px;opacity:.96;margin-bottom:32px}
+.red-line{width:60px;height:4px;background:var(--red);margin:14px 0 18px}
+.hero p{font-size:clamp(16px,1.7vw,19px);max-width:1000px;opacity:.96;margin-bottom:28px}
 .hero-buttons{display:flex;gap:14px;flex-wrap:wrap}
-.btn{display:inline-block;padding:14px 28px;border-radius:4px;font-weight:600;font-size:15px;text-decoration:none;transition:.25s;border:2px solid transparent;cursor:pointer;text-align:center}
+.btn{display:inline-block;padding:12px 26px;border-radius:4px;font-weight:600;font-size:15px;text-decoration:none;transition:.25s;border:2px solid transparent;cursor:pointer;text-align:center}
 .btn-red{background:var(--red);color:#fff;border-color:var(--red)}
 .btn-red:hover{background:#c70511;transform:translateY(-1px)}
 .btn-outline{background:transparent;color:#fff;border-color:#fff}
@@ -262,69 +125,73 @@ img{max-width:100%;display:block}
 
 /* Features */
 .features{position:relative;z-index:5;margin-top:-60px;padding-bottom:40px}
-.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1200px;margin:0 auto;padding:0 20px}
-.feature-card{background:#fff;padding:30px 26px;border-radius:8px;box-shadow:0 12px 30px rgba(0,0,0,.08);border-top:4px solid var(--blue)}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1400px;width:94%;margin:0 auto;padding:0 20px}
+.feature-card{background:#fff;padding:24px 20px;border-radius:8px;box-shadow:0 12px 30px rgba(0,0,0,.08);border-top:4px solid var(--blue)}
 .feature-icon{width:48px;height:48px;background:#E6F0F9;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;color:var(--blue)}
 .feature-card h3{font-size:18px;color:var(--navy);margin-bottom:8px;font-weight:600}
 .feature-card p{color:var(--muted);font-size:14px;line-height:1.6}
 
 /* Sections */
-section{padding:80px 0}
-.section-header{text-align:center;max-width:720px;margin:0 auto 50px}
+section{padding:100px 0}
+.section-header{text-align:center;max-width:720px;margin:0 auto 40px}
 .section-header h2{font-size:clamp(28px,3.4vw,36px);color:var(--navy);font-weight:700;margin-bottom:10px}
 .section-header .red-line{margin:14px auto}
 .section-header p{color:var(--muted);font-size:16px}
 
 /* About */
-.about{display:grid;grid-template-columns:1.05fr 1fr;gap:60px;align-items:center}
+.about{display:grid;grid-template-columns:1.05fr 1fr;gap:45px;align-items:center}
 .about-image{border-radius:8px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.1)}
-.about-image img{width:100%;height:420px;object-fit:cover}
+.about-image img{width:100%;height:380px;object-fit:cover}
 .about-content h3{color:var(--blue);font-size:22px;margin-bottom:8px;font-weight:600}
-.about-content p{color:var(--muted);margin-bottom:14px;line-height:1.75}
-.about-points{margin-top:22px;display:flex;flex-direction:column;gap:11px}
+.about-content p{color:var(--muted);margin-bottom:12px;line-height:1.75}
+.about-points{margin-top:18px;display:flex;flex-direction:column;gap:9px}
 .about-point{display:flex;align-items:center;gap:10px;font-weight:500;color:var(--navy);font-size:15px}
-.about-point::before{content:'✓';width:22px;height:22px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px}
+.about-point::before{content:'\2713';width:22px;height:22px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px}
 
 /* Services */
 .services{background:var(--gray)}
-.services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:20px;max-width:1200px;margin:0 auto;padding:0 20px}
-.service-card{background:#fff;padding:26px 24px;border-radius:8px;border-left:4px solid var(--red);box-shadow:0 4px 12px rgba(0,0,0,.05);transition:.3s}
+.services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;max-width:1400px;width:94%;margin:0 auto;padding:0 20px}
+.service-card{background:#fff;padding:20px 18px;border-radius:8px;border-left:4px solid var(--red);box-shadow:0 4px 12px rgba(0,0,0,.05);transition:.3s}
 .service-card:hover{transform:translateY(-3px)}
 .service-card h4{color:var(--blue);font-size:17px;margin-bottom:7px;font-weight:600}
 .service-card p{color:var(--muted);font-size:14px}
 
 /* Stats */
-.stats{background:var(--blue);padding:60px 0;color:#fff}
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:30px;max-width:1000px;margin:0 auto;text-align:center;padding:0 20px}
+.stats{background:var(--blue);padding:80px 0;color:#fff}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;max-width:1400px;width:94%;margin:0 auto;text-align:center;padding:0 20px}
 .stat-number{font-size:44px;font-weight:700;margin-bottom:6px}
 .stat-label{font-size:13px;text-transform:uppercase;letter-spacing:1px;opacity:.92}
 
 /* Projects */
-.projects-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1200px;margin:0 auto;padding:0 20px}
+.projects-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;max-width:1400px;width:94%;margin:0 auto;padding:0 20px}
 .project-card{background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.07)}
-.project-card img{width:100%;height:220px;object-fit:cover}
-.project-content{padding:20px}
+.project-card img{width:100%;height:200px;object-fit:cover}
+.project-content{padding:16px}
 .project-content h4{color:var(--navy);font-size:17px;margin-bottom:6px;font-weight:600}
 .project-content p{color:var(--muted);font-size:14px}
-.projects-footer{max-width:1200px;margin:32px auto 0;padding:0 20px;text-align:right}
+.projects-footer{max-width:1400px;margin:28px auto 0;padding:0 20px;text-align:right}
 .btn-blue{background:var(--blue);color:#fff;border-color:var(--blue)}
 .btn-blue:hover{background:#00437f}
 
 /* CTA */
-.cta{background:var(--blue);padding:70px 0;text-align:center;color:#fff}
-.cta h2{font-size:clamp(26px,3vw,33px);font-weight:700;margin-bottom:12px}
-.cta p{font-size:17px;opacity:.95;margin-bottom:26px;max-width:700px;margin-left:auto;margin-right:auto}
+.cta{background:var(--blue);padding:80px 0;text-align:center;color:#fff}
+.cta h2{font-size:clamp(26px,3vw,33px);font-weight:700;margin-bottom:8px}
+.cta p{font-size:17px;opacity:.95;margin-bottom:22px;max-width:700px;margin-left:auto;margin-right:auto}
 
 /* Footer */
-.footer{background:var(--navy);color:#cbd5e1;padding:60px 0 28px}
-.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1.4fr;gap:40px;max-width:1200px;margin:0 auto;padding:0 20px}
+.footer{background:var(--navy);color:#cbd5e1;padding:50px 0 24px}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr;gap:60px;width:100%;margin:0;padding:0 40px;justify-content:space-between;align-items:start}
 .footer h4{color:#fff;font-size:16px;margin-bottom:14px;font-weight:600}
 .footer p{font-size:14px;color:#94a3b8;line-height:1.7;margin-bottom:10px}
 .footer a{display:block;color:#94a3b8;text-decoration:none;font-size:14px;margin-bottom:8px}
 .footer a:hover{color:#fff}
-.footer-logo{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.footer-logo{display:flex;align-items:center;gap:18px;margin-bottom:18px}
+.footer-logo-img{width:72px;height:72px;object-fit:contain;border-radius:14px;background:#fff;padding:8px;}
+.footer-brand-text{display:flex;flex-direction:column;justify-content:center;}
+.footer-logo-tagline{color:#94a3b8;font-size:13px;line-height:1.4;margin:0}
+.footer-logo h4{margin:0;font-size:18px;line-height:1.1}
 .footer-logo-box{width:34px;height:34px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;border-radius:4px;font-size:13px}
-.footer-bottom{border-top:1px solid rgba(255,255,255,.1);margin-top:40px;padding-top:20px;text-align:center;font-size:13px;color:#94a3b8}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.1);margin-top:32px;padding-top:16px;text-align:center;font-size:13px;color:#94a3b8}
 
 /* Profile Page */
 #profilePage{display:none;background:#fff;min-height:100vh}
@@ -332,16 +199,17 @@ section{padding:80px 0}
 .back-btn{background:var(--blue);color:#fff;border:none;padding:10px 18px;border-radius:4px;font-weight:600;cursor:pointer;font-size:14px}
 .back-btn:hover{background:#00437f}
 .profile-cover{background:linear-gradient(135deg,var(--blue) 0%,#003d73 100%);color:#fff;padding:85px 20px 65px;text-align:center}
-.profile-cover h1{font-size:clamp(28px,4vw,40px);font-weight:700;margin-bottom:6px}
+.profile-cover h1{font-size:clamp(28px,4vw,40px);font-weight:700;margin-bottom:6px;display:flex;align-items:center;justify-content:center;gap:15px;flex-wrap:wrap}
+.profile-logo-img{width:60px;height:60px;object-fit:contain;border-radius:10px;background:#fff;padding:5px}
 .profile-cover p{opacity:.95;letter-spacing:.5px;font-size:14px}
 .profile-cover .red-line{margin:20px auto 0}
-.profile-content{max-width:1000px;margin:0 auto;padding:50px 20px}
-.profile-section{margin-bottom:48px}
-.profile-section h2{color:var(--blue);font-size:25px;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #e5e7eb;position:relative}
+.profile-content{max-width:1400px;width:94%;margin:0 auto;padding:40px 20px}
+.profile-section{margin-bottom:40px}
+.profile-section h2{color:var(--blue);font-size:23px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #e5e7eb;position:relative}
 .profile-section h2::after{content:'';position:absolute;bottom:-2px;left:0;width:60px;height:2px;background:var(--red)}
 .profile-section p{color:#374151;line-height:1.8;margin-bottom:12px}
 .vision-mission{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:18px}
-.vm-card{background:var(--gray);padding:22px;border-radius:8px;border-left:4px solid var(--blue)}
+.vm-card{background:var(--gray);padding:18px;border-radius:8px;border-left:4px solid var(--blue)}
 .vm-card h4{color:var(--blue);margin-bottom:8px}
 .vm-card ul{padding-left:18px;color:#4b5563}
 .legal-table,.project-table{width:100%;border-collapse:collapse;margin-top:14px;font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,.06);border-radius:6px;overflow:hidden}
@@ -354,9 +222,9 @@ section{padding:80px 0}
 /* Gallery */
 #galleryPage{display:none;background:#fff;min-height:100vh}
 .gallery-top{position:sticky;top:0;background:#fff;border-bottom:1px solid #e5e7eb;padding:13px 20px;z-index:100;display:flex;justify-content:space-between;align-items:center}
-.gallery-top h2{color:var(--blue);font-size:19px;font-weight:700;margin:0}
-.gallery-wrap{max-width:1200px;margin:0 auto;padding:28px 20px}
-.drop-zone{display:none;border:2px dashed var(--blue);border-radius:10px;padding:44px 20px;text-align:center;background:var(--gray);cursor:pointer;transition:.3s}
+.gallery-top h2{color:var(--blue);font-size:18px;font-weight:700;margin:0}
+.gallery-wrap{max-width:1200px;margin:0 auto;padding:22px 20px}
+.drop-zone{display:none;border:2px dashed var(--blue);border-radius:10px;padding:32px 20px;text-align:center;background:var(--gray);cursor:pointer;transition:.3s}
 .drop-zone.dragover{background:#E6F0F9;border-color:var(--red)}
 .drop-zone h3{color:var(--navy);font-size:17px;margin:8px 0 4px}
 .drop-zone p{color:var(--muted);font-size:13px}
@@ -368,8 +236,9 @@ section{padding:80px 0}
 .admin-modal-card h3{margin:0 0 10px;color:var(--navy);font-size:20px}
 .admin-modal-card p{margin:0 0 20px;color:#64748b;font-size:14px;line-height:1.6}
 .admin-modal-card input{width:100%;padding:12px 14px;border:1px solid #d1d5db;border-radius:10px;font-size:15px;margin-bottom:18px}
+.admin-modal-card textarea{width:100%;padding:12px 14px;border:1px solid #d1d5db;border-radius:10px;font-size:14px;margin-bottom:18px;resize:vertical;min-height:80px}
 .admin-modal-actions{display:flex;gap:12px;flex-wrap:wrap}
-.gallery-controls{display:flex;gap:14px;margin:22px 0;align-items:center;flex-wrap:wrap}
+.gallery-controls{display:flex;gap:12px;margin:18px 0;align-items:center;flex-wrap:wrap}
 .search-box{flex:1;min-width:220px;position:relative}
 .search-box input{width:100%;padding:10px 14px 10px 36px;border:1px solid #d1d5db;border-radius:6px;font-size:14px}
 .search-box input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,82,156,.1)}
@@ -378,34 +247,33 @@ section{padding:80px 0}
 .btn-delete{background:var(--red);color:#fff;border:none;padding:9px 14px;border-radius:6px;font-weight:600;cursor:pointer;font-size:13px}
 .progress-wrap{display:none;height:6px;background:var(--gray);border-radius:3px;overflow:hidden;margin-bottom:18px}
 .progress-fill{height:100%;width:0;background:var(--blue);transition:width .3s}
-.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
-.photo-card{position:relative;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08);aspect-ratio:1;cursor:pointer;background:#f3f4f6}
-.photo-card img{width:100%;height:100%;object-fit:cover;transition:.3s}
-.photo-card:hover img{transform:scale(1.04)}
-.photo-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.65),transparent 55%);opacity:0;transition:.3s;display:flex;align-items:flex-end;padding:8px}
-.photo-card:hover .photo-overlay{opacity:1}
-.photo-name{color:#fff;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
-.photo-delete{position:absolute;top:6px;right:6px;background:var(--red);color:#fff;border:none;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;font-size:16px}
-.photo-card:hover .photo-delete{opacity:1}
-.empty-state{text-align:center;padding:70px 20px;color:var(--muted)}
+.gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;max-width:1400px;width:94%;margin:0 auto;padding:0 20px}
+.photo-card{background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.07);transition:transform .5s cubic-bezier(.2,.6,.2,1),box-shadow .5s cubic-bezier(.2,.6,.2,1);display:flex;flex-direction:column;height:100%}
+.photo-card img{width:100%;height:200px;object-fit:cover;transition:.3s}
+.photo-card:hover img{transform:scale(1.05)}
+.photo-overlay{padding:12px;flex:1;display:flex;flex-direction:column;justify-content:flex-start}
+.photo-card:hover{transform:translateY(-10px);box-shadow:0 22px 45px rgba(0,0,0,.15)}
+.photo-name{color:#fff;font-size:14px;white-space:normal;word-break:break-word}
+.photo-delete{background:var(--red);color:#fff;border:none;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:.2s}
+.empty-state{text-align:center;padding:50px 20px;color:var(--muted)}
 .lightbox{position:fixed;inset:0;background:rgba(10,25,49,.92);z-index:2000;display:none;align-items:center;justify-content:center;padding:30px}
 .lightbox.active{display:flex}
 .lightbox img{max-width:92vw;max-height:86vh;border-radius:8px}
 .lightbox-close{position:absolute;top:18px;right:18px;background:var(--red);color:#fff;border:none;width:40px;height:40px;border-radius:50%;font-size:22px;cursor:pointer}
 
 /* Responsive */
-@media(max-width:1024px){.features-grid{grid-template-columns:1fr}.features{margin-top:-30px}.about{gap:40px}.footer-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:1024px){.features-grid{grid-template-columns:1fr}.features{margin-top:-20px}.about{gap:35px}.footer-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:768px){
-.topbar-right{display:none}.nav-menu{display:none;position:absolute;top:72px;left:0;right:0;background:#fff;flex-direction:column;padding:16px 20px;box-shadow:0 4px 12px rgba(0,0,0,.1);gap:0}
-.nav-menu.active{display:flex}.nav-menu li{width:100%}.nav-menu a{display:block;padding:13px 0;border-bottom:1px solid #f3f4f6}
-.hamburger{display:block}.hero{height:auto;padding:110px 0 90px;min-height:auto}.hero-buttons{flex-direction:column}.btn{width:100%}.about{grid-template-columns:1fr}.about-image img{height:280px}.stats-grid{grid-template-columns:repeat(2,1fr);gap:20px}.projects-grid{grid-template-columns:1fr}.projects-footer{text-align:center}.vision-mission{grid-template-columns:1fr}.footer-grid{grid-template-columns:1fr}section{padding:60px 0}
+.topbar-right{display:none}.nav-menu{display:none;position:absolute;top:72px;left:0;right:0;background:#fff;flex-direction:column;padding:14px 20px;box-shadow:0 4px 12px rgba(0,0,0,.1);gap:0}
+.nav-menu.active{display:flex}.nav-menu li{width:100%}.nav-menu a{display:block;padding:11px 0;border-bottom:1px solid #f3f4f6}
+.hamburger{display:block}.hero{height:auto;padding:90px 0 70px}.hero-buttons{flex-direction:column}.btn{width:100%}.about{grid-template-columns:1fr;gap:30px}.about-image img{height:260px}.stats-grid{grid-template-columns:repeat(2,1fr);gap:16px}.projects-grid{grid-template-columns:1fr}.projects-footer{text-align:center}.vision-mission{grid-template-columns:1fr}.footer-grid{grid-template-columns:1fr}section{padding:50px 0}
+.stats-grid{grid-template-columns:repeat(2,1fr);gap:16px}.projects-grid{grid-template-columns:1fr}.projects-footer{text-align:center}.vision-mission{grid-template-columns:1fr}.footer-grid{grid-template-columns:1fr}.footer-grid > div:last-child{text-align:left}section{padding:50px 0}
 }
 
-.projects-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1200px;margin:0 auto;padding:0 20px}
-.project-card{background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.07);transition:.3s;display:flex;flex-direction:column;height:100%}
-.project-card:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(0,0,0,.12)}
+.project-card{background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.07);transition:transform .5s cubic-bezier(.2,.6,.2,1),box-shadow .5s cubic-bezier(.2,.6,.2,1);display:flex;flex-direction:column;height:100%}
+.project-card:hover{transform:translateY(-10px);box-shadow:0 22px 45px rgba(0,0,0,.15)}
 .project-img{position:relative;height:210px;overflow:hidden}
-.project-img img{width:100%;height:100%;object-fit:cover;transition:.4s}
+.project-img img{width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.2,.6,.2,1)}
 .project-card:hover .project-img img{transform:scale(1.05)}
 .project-tag{position:absolute;top:12px;left:12px;background:var(--blue);color:#fff;padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
 .project-content{padding:18px 18px 16px;flex:1;display:flex;flex-direction:column}
@@ -415,8 +283,8 @@ section{padding:80px 0}
 .projects-footer{text-align:center;margin-top:36px}
 .btn-blue{background:var(--blue);color:#fff;border:2px solid var(--blue)}
 .btn-blue:hover{background:#00437f}
-@media(max-width:900px){.projects-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){.projects-grid{grid-template-columns:1fr}}
+@media(max-width:900px){.projects-grid, .gallery-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.projects-grid, .gallery-grid{grid-template-columns:1fr}}
 
 
 /* === Soft Scroll Animations === */
@@ -438,7 +306,7 @@ section{padding:80px 0}
 
 /* Smooth navbar */
 .navbar{transition:box-shadow .3s, background .3s}
-.navbar.scrolled{box-shadow:0 4px 20px rgba(0,0,0,.08);background:rgba(255,255,255,.98);backdrop-filter:saturate(180%) blur(8px)}
+.navbar.scrolled{box-shadow:0 4px 20px rgba(0,0,0,.08);background:rgba(255,255,255,.98);-webkit-backdrop-filter:saturate(180%) blur(8px);backdrop-filter:saturate(180%) blur(8px)}
 
 /* Button micro-interaction */
 .btn{position:relative;overflow:hidden}
@@ -450,16 +318,24 @@ section{padding:80px 0}
 .feature-card, .project-card, .service-card, .hero h1, .hero p {will-change: transform, opacity; backface-visibility:hidden; transform:translateZ(0)}
 @media (prefers-reduced-motion: reduce) {* {animation:none!important; transition:none!important}}
 
+/* Inline style replacements */
+.logo-img {height: 55px; width: auto; display: block;}
+.logo-text {display: flex; flex-direction: column; justify-content: center;}
+.logo-strong {font-weight: 700; color: var(--navy); font-size: 15px;}
+.logo-span {font-size: 10px; color: var(--muted); margin-top: -2px;}
+.nav-right {display: flex; align-items: center; gap: 16px;}
+.footer-h4 {margin: 0;}
+.footer-p {margin-top: 12px; font-size: 13px;}
+.profile-span {color: var(--muted); font-size: 13px;}
+.signature-p {margin-top: 20px; font-weight: 600; color: var(--navy);}
+.contact-div {margin-top: 20px;}
+.svg-icon {color: var(--blue); margin: 0 auto;}
+.gallery-h3 {margin-top: 10px; color: var(--navy);}
+
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
-
-<style id="gl-editor-styles">
-.gl-1 {
-  margin-bottom: 15px;
-}
-</style>
 </head>
 <body>
 
@@ -470,7 +346,7 @@ section{padding:80px 0}
       <span data-i18n="topbar_left">Membangun Infrastruktur Indonesia</span>
       <div class="topbar-right">
         <span>maisan.bintangmuda@gmail.com</span>
-        <span>•</span>
+        <span>&bull;</span>
         <span>0813-1157-8023</span>
       </div>
     </div>
@@ -480,10 +356,10 @@ section{padding:80px 0}
   <nav class="navbar">
     <div class="container nav-container">
       <a href="#" class="logo">
-        <img src="mbm logo new.png" alt="MBM Logo" style="height: 80px; width: 78px; display: block; position: absolute; left: 83px; bottom: -1px;">
+        <img src="mbm logo new.png" alt="MBM Logo" class="logo-img">
         <div class="logo-text">
-          <strong style="position: absolute; top: 18px; left: 173px; width: 186px; height: 24px;">MAISAN BINTANG MUDA</strong>
-          <span data-i18n="tagline" style="position: absolute; left: 174px; width: 152.359px; height: 14px; bottom: 16px;">CONTRACTOR & SUPPLIER</span>
+          <strong class="logo-strong">MAISAN BINTANG MUDA</strong>
+          <span data-i18n="tagline" class="logo-span">CONTRACTOR &amp; SUPPLIER</span>
         </div>
       </a>
       <ul class="nav-menu" id="navMenu">
@@ -491,15 +367,16 @@ section{padding:80px 0}
         <li><a href="#tentang" data-i18n="nav_about">TENTANG KAMI</a></li>
         <li><a href="#layanan" data-i18n="nav_services">LAYANAN</a></li>
         <li><a href="#proyek" data-i18n="nav_projects">PROYEK</a></li>
+        <li><a href="#blog" data-i18n="nav_blog">BLOG</a></li>
         <li><a href="#kontak" data-i18n="nav_contact">KONTAK</a></li>
       </ul>
-      <div style="display:flex;align-items:center;gap:16px">
+      <div class="nav-right">
         <div class="lang-toggle">
           <button id="lang-id" class="active">ID</button>
           <span>|</span>
           <button id="lang-en">EN</button>
         </div>
-        <button class="hamburger" id="hamburger">☰</button>
+        <button class="hamburger" id="hamburger">&#9776;</button>
       </div>
     </div>
   </nav>
@@ -507,11 +384,11 @@ section{padding:80px 0}
   <!-- Hero -->
   <section id="beranda" class="hero">
     <div class="container hero-content">
-      <h1 data-i18n="hero_title">Kontraktor Pondasi Jalan & Supplier Material Terpercaya</h1>
+      <h1 data-i18n="hero_title">Kontraktor Pondasi Jalan &amp; Supplier Material Terpercaya</h1>
       <div class="red-line"></div>
-      <p data-i18n="hero_subtitle">CV. Maisan Bintang Muda menyediakan solusi lengkap untuk konstruksi pondasi jalan, pengadaan aspal, limestone, dan basecourse dengan kualitas terjamin dan pengiriman tepat waktu di seluruh Jabodetabek.</p>
+      <p data-i18n="hero_subtitle">CV. Maisan Bintang Muda menyediakan solusi lengkap untuk konstruksi pondasi jalan, pengadaan pasir, limestone, dan basecourse dengan kualitas terjamin dan pengiriman tepat waktu di seluruh Jabodetabek.</p>
       <div class="hero-buttons">
-        <a href="https://wa.me/6282213853865" target="_blank" class="btn btn-red" data-i18n="btn_contact">Hubungi Kami</a>
+        <a href="https://wa.me/6282213853865" target="_blank" rel="noopener" class="btn btn-red" data-i18n="btn_contact">Hubungi Kami</a>
         <button class="btn btn-outline" id="openProfile" data-i18n="btn_profile">View Company Profile</button>
       </div>
     </div>
@@ -532,7 +409,7 @@ section{padding:80px 0}
           <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 17H4V7h4m6 10h6V7h-6M9 21a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4z"/></svg>
         </div>
         <h3 data-i18n="feature2_title">Supplier Material</h3>
-        <p data-i18n="feature2_desc">Penyedia aspal hotmix, limestone, basecourse A & B dengan mutu sesuai spesifikasi.</p>
+        <p data-i18n="feature2_desc">Penyedia limestone, basecourse, pasir, dan batu belah dengan mutu sesuai spesifikasi teknis.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">
@@ -554,17 +431,17 @@ section{padding:80px 0}
       </div>
       <div class="about">
         <div class="about-image">
-          <img src="extracted_0.jpg" alt="Proyek Jalan">
+          <img src="pengerasan-jalan.jpeg" alt="Proyek Jalan">
         </div>
         <div class="about-content">
           <h3>CV. MAISAN BINTANG MUDA</h3>
           <div class="red-line"></div>
-          <p data-i18n="about_p1">CV. MAISAN BINTANG MUDA adalah perusahaan yang bergerak di bidang CONTRACTOR, GENERAL SUPPLIER, PERDAGANGAN UMUM DAN JASA. Berkedudukan di Cikarang Pusat, Bekasi, kami fokus pada pembangunan pondasi jalan dan penyediaan material konstruksi berkualitas.</p>
+          <p data-i18n="about_p1">CV. MAISAN BINTANG MUDA adalah perusahaan yang bergerak di bidang CONTRACTOR, GENERAL SUPPLIER, PERDAGANGAN UMUM DAN JASA. Berkedudukan di Cikarang Pusat, Bekasi, kami fokus pada pembangunan pondasi jalan dan penyediaan material alam berkualitas.</p>
           <p data-i18n="about_p2">Dengan tim berpengalaman, peralatan lengkap, dan komitmen terhadap mutu serta K3, kami telah dipercaya menangani berbagai proyek pemerintah dan swasta. Kepuasan klien adalah prioritas utama kami.</p>
           <div class="about-points">
             <div class="about-point" data-i18n="about_point1">Tenaga Ahli Berpengalaman</div>
             <div class="about-point" data-i18n="about_point2">Material Sesuai SNI</div>
-            <div class="about-point" data-i18n="about_point3">Tepat Waktu & Kompetitif</div>
+            <div class="about-point" data-i18n="about_point3">Tepat Waktu &amp; Kompetitif</div>
           </div>
         </div>
       </div>
@@ -578,26 +455,66 @@ section{padding:80px 0}
       <div class="red-line"></div>
       <p data-i18n="services_subtitle">Solusi lengkap untuk kebutuhan konstruksi jalan Anda</p>
     </div>
-    <div class="services-grid">
-      <div class="service-card">
-        <h4 data-i18n="service1_title">Pondasi Jalan</h4>
-        <p data-i18n="service1_desc">Pekerjaan galian, timbunan, pemadatan, dan perkerasan pondasi.</p>
+    <div class="projects-grid">
+      <div class="project-card">
+        <div class="project-img">
+          <img src="img/project1-jalan.jpg" alt="Pasir" loading="lazy">
+        </div>
+        <div class="project-content">
+          <h4 data-i18n="project1_title">Pasir Konstruksi Berkualitas</h4>
+          <p data-i18n="project1_desc">Pasir bersih & terukur untuk beton, plesteran, pengecoran SNI</p>
+          <div class="project-meta"><span>Lokasi: Jabodetabek</span><span>Tersedia</span></div>
+        </div>
       </div>
-      <div class="service-card">
-        <h4 data-i18n="service2_title">Aspal Hotmix</h4>
-        <p data-i18n="service2_desc">Supply dan gelar aspal AC-WC, AC-BC, AC-Base.</p>
+      <div class="project-card">
+        <div class="project-img">
+          <img src="img/project2-limestone.jpg" alt="Limestone" loading="lazy">
+        </div>
+        <div class="project-content">
+          <h4 data-i18n="project2_title">Limestone Premium Grade</h4>
+          <p data-i18n="project2_desc">Limestone putih grade premium, daya dukung maksimal</p>
+          <div class="project-meta"><span>Lokasi: Jabodetabek</span><span>Tersedia</span></div>
+        </div>
       </div>
-      <div class="service-card">
-        <h4 data-i18n="service3_title">Limestone</h4>
-        <p data-i18n="service3_desc">Pengadaan batu gamping untuk stabilisasi tanah.</p>
+      <div class="project-card">
+        <div class="project-img">
+          <img src="img/project3-pemeliharaan.jpg" alt="Batu Belah" loading="lazy">
+        </div>
+        <div class="project-content">
+          <h4 data-i18n="project3_title">Batu Belah Alam (Batu Kali)</h4>
+          <p data-i18n="project3_desc">Batu kali untuk pondasi, penahan tanah, saluran air</p>
+          <div class="project-meta"><span>Lokasi: Jabodetabek</span><span>Tersedia</span></div>
+        </div>
       </div>
-      <div class="service-card">
-        <h4 data-i18n="service4_title">Basecourse A</h4>
-        <p data-i18n="service4_desc">Material lapis pondasi atas dengan gradasi terbaik.</p>
+      <div class="project-card">
+        <div class="project-img">
+          <img src="img/project4-basecourse.jpg" alt="Basecourse" loading="lazy">
+        </div>
+        <div class="project-content">
+          <h4 data-i18n="project4_title">Basecourse A &amp; B - Lapis Pondasi</h4>
+          <p data-i18n="project4_desc">Lapis pondasi atas (A) dan bawah (B) sesuai spesifikasi</p>
+          <div class="project-meta"><span>Lokasi: Jabodetabek</span><span>Tersedia</span></div>
+        </div>
       </div>
-      <div class="service-card">
-        <h4 data-i18n="service5_title">Basecourse B</h4>
-        <p data-i18n="service5_desc">Material lapis pondasi bawah untuk kekuatan struktur.</p>
+      <div class="project-card">
+        <div class="project-img">
+          <img src="img/project5-aspal.jpg" alt="Batu Split" loading="lazy">
+        </div>
+        <div class="project-content">
+          <h4 data-i18n="project5_title">Batu Split Berbagai Ukuran</h4>
+          <p data-i18n="project5_desc">Batu pecah 1/2", 2/3" untuk beton &amp; pengaspalan</p>
+          <div class="project-meta"><span>Lokasi: Jabodetabek</span><span>Tersedia</span></div>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-img">
+          <img src="img/project6-supplier.jpg" alt="Solusi Lengkap" loading="lazy">
+        </div>
+        <div class="project-content">
+          <h4 data-i18n="project6_title">Solusi Material Lengkap</h4>
+          <p data-i18n="project6_desc">Material alam berkualitas dengan pengiriman cepat</p>
+          <div class="project-meta"><span>Lokasi: Jabodetabek</span><span>Tersedia</span></div>
+        </div>
       </div>
     </div>
   </section>
@@ -624,104 +541,35 @@ section{padding:80px 0}
     </div>
   </div>
 
-  <!-- Proyek -->
+  <!-- Proyek Portfolio -->
   <section id="proyek">
-    
-    <div class="section-header">
-      <h2 data-i18n="projects_title">Proyek Terbaru</h2>
-      <div class="red-line"></div>
-      <p data-i18n="projects_subtitle">Beberapa proyek yang telah kami kerjakan</p>
-    </div>
-    <div class="projects-grid">
-      <div class="project-card">
-        <div class="project-img">
-          <img src="extracted_1.jpg" alt="Proyek 1">
-          <span class="project-tag">Jalan</span>
-        </div>
-        <div class="project-content">
-          <h4 data-i18n="project1_title">Peningkatan Jalan Kawasan Deltamas</h4>
-          <p data-i18n="project1_desc">Pekerjaan basecourse A/B dan aspal hotmix 5km</p>
-          <div class="project-meta">
-            <span>📍 Cikarang Pusat</span>
-            <span>2024</span>
-          </div>
-        </div>
+    <div class="container">
+      <div class="section-header">
+        <h2 data-i18n="projects_title">Proyek Terbaru</h2>
+        <div class="red-line"></div>
+        <p data-i18n="projects_subtitle">Beberapa proyek yang telah kami kerjakan</p>
       </div>
-      <div class="project-card">
-        <div class="project-img">
-          <img src="extracted_2.jpg" alt="Proyek 2">
-          <span class="project-tag">Limestone</span>
-        </div>
-        <div class="project-content">
-          <h4 data-i18n="project2_title">Perkerasan Jalan Industri Cikarang</h4>
-          <p data-i18n="project2_desc">Supply limestone 12.000 ton & pemadatan</p>
-          <div class="project-meta">
-            <span>📍 Kawasan MM2100</span>
-            <span>2024</span>
-          </div>
-        </div>
-      </div>
-      <div class="project-card">
-        <div class="project-img">
-          <img src="extracted_3.jpg" alt="Proyek 3">
-          <span class="project-tag">Pemeliharaan</span>
-        </div>
-        <div class="project-content">
-          <h4 data-i18n="project3_title">Pemeliharaan Jalan Bekasi</h4>
-          <p data-i18n="project3_desc">Patching dan overlay AC-WC 3.2km</p>
-          <div class="project-meta">
-            <span>📍 Bekasi Timur</span>
-            <span>2023</span>
-          </div>
-        </div>
-      </div>
-      <div class="project-card">
-        <div class="project-img">
-          <img src="extracted_4.jpg" alt="Proyek 4">
-          <span class="project-tag">Basecourse</span>
-        </div>
-        <div class="project-content">
-          <h4>Pondasi Jalan Tol Akses</h4>
-          <p>Basecourse B dan agregat untuk jalan akses proyek</p>
-          <div class="project-meta">
-            <span>📍 Karawang</span>
-            <span>2023</span>
-          </div>
-        </div>
-      </div>
-      <div class="project-card">
-        <div class="project-img">
-          <img src="extracted_5.jpg" alt="Proyek 5">
-          <span class="project-tag">Aspal</span>
-        </div>
-        <div class="project-content">
-          <h4>Hotmix Perumahan Deltamas</h4>
-          <p>Pengaspalan jalan lingkungan cluster baru</p>
-          <div class="project-meta">
-            <span>📍 Cikarang</span>
-            <span>2024</span>
-          </div>
-        </div>
-      </div>
-      <div class="project-card">
-        <div class="project-img">
-          <img src="extracted_6.jpg" alt="Proyek 6">
-          <span class="project-tag">Supplier</span>
-        </div>
-        <div class="project-content">
-          <h4>Supply Material Proyek Pemerintah</h4>
-          <p>Pengadaan limestone dan sirtu untuk 5 titik</p>
-          <div class="project-meta">
-            <span>📍 Kab. Bekasi</span>
-            <span>2024</span>
-          </div>
-        </div>
+      <div class="projects-grid" id="portfolioGrid"></div>
+      <div class="projects-footer">
+        <button class="btn btn-blue" id="openGallery" data-i18n="btn_view_all">Lihat Semua</button>
       </div>
     </div>
-    <div class="projects-footer">
-      <button class="btn btn-blue" id="openGallery" data-i18n="btn_view_all">Lihat Semua</button>
-    </div>
+  </section>
 
+  <!-- Blog Section -->
+  <section id="blog" class="services">
+    <div class="container">
+      <div class="section-header">
+        <h2 data-i18n="blog_title">Artikel Konstruksi</h2>
+        <div class="red-line"></div>
+        <p data-i18n="blog_subtitle">Informasi dan tips seputar dunia konstruksi jalan dan material.</p>
+      </div>
+      <div class="projects-grid" id="blogGalleryContainer"></div>
+      <div class="projects-grid" id="blogGrid"></div>
+      <div class="projects-footer">
+        <button class="btn btn-blue" onclick="openBlogArchive()" data-i18n="btn_view_all_blog">Lihat Artikel Lainnya</button>
+      </div>
+    </div>
   </section>
 
   <!-- CTA -->
@@ -729,7 +577,7 @@ section{padding:80px 0}
     <div class="container">
       <h2 data-i18n="cta_title">Siap Membangun Proyek Anda?</h2>
       <p data-i18n="cta_subtitle">Konsultasikan kebutuhan pondasi jalan dan material Anda dengan tim ahli kami.</p>
-      <a href="https://wa.me/6282213853865" target="_blank" class="btn btn-red" data-i18n="cta_btn">Chat WhatsApp Sekarang</a>
+      <a href="https://wa.me/6282213853865" target="_blank" rel="noopener" class="btn btn-red" data-i18n="cta_btn">Chat WhatsApp Sekarang</a>
     </div>
   </div>
 
@@ -738,124 +586,164 @@ section{padding:80px 0}
     <div class="footer-grid">
       <div>
         <div class="footer-logo">
-          <img src="mbm logo new.png" alt="MBM" style="height: 42px; width: 36.3594px; position: absolute; top: 4421px;" class="gl-1">
-          <h4 style="margin:0" data-i18n="footer_about_title">CV. MAISAN BINTANG MUDA</h4>
+          <img src="mbm logo new.png" alt="MBM" class="footer-logo-img">
+          <div class="footer-brand-text">
+            <h4 class="footer-h4" data-i18n="footer_about_title">CV. MAISAN BINTANG MUDA</h4>
+            <p class="footer-logo-tagline">CONTRACTOR, GENERAL SUPPLIER, PERDAGANGAN UMUM DAN JASA</p>
+          </div>
         </div>
-        <p data-i18n="footer_about_text">Kontraktor pondasi jalan dan supplier material terpercaya di Bekasi & Jabodetabek.</p>
-        <p style="margin-top:12px;font-size:13px">CONTRACTOR, GENERAL SUPPLIER, PERDAGANGAN UMUM DAN JASA</p>
-      </div>
-      <div>
-        <h4 data-i18n="footer_services_title">Layanan</h4>
-        <a href="#layanan">Pondasi Jalan</a>
-        <a href="#layanan">Aspal Hotmix</a>
-        <a href="#layanan">Limestone</a>
-        <a href="#layanan">Basecourse A/B</a>
+        <p data-i18n="footer_about_text">Kontraktor pondasi jalan dan supplier material terpercaya di Bekasi &amp; Jabodetabek.</p>
+        <div style="margin-top: 25px;">
+          <h4 data-i18n="footer_address_title" style="margin-bottom: 8px;">Alamat Kantor</h4>
+          <p style="margin-bottom: 0;">Jl. Raya Tegal Danas - Deltamas No.26, Kp. Kandang Gereng RT01/RW04 Ds. Hegarmukti, Cikarang Pusat, Bekasi 17530</p>
+        </div>
       </div>
       <div>
         <h4 data-i18n="footer_contact_title">Kontak</h4>
         <a href="tel:081311578023">HP: 0813-1157-8023</a>
-        <a href="https://wa.me/6282213853865" target="_blank">WA: 0822-1385-3865</a>
+        <a href="https://wa.me/6282213853865" target="_blank" rel="noopener">WA: 0822-1385-3865</a>
         <a href="mailto:maisan.bintangmuda@gmail.com">maisan.bintangmuda@gmail.com</a>
       </div>
-      <div>
-        <h4 data-i18n="footer_address_title">Alamat Kantor</h4>
-        <p>Jl. Raya Tegal Danas - Deltamas No.26, Kp. Kandang Gereng RT01/RW04 Ds. Hegarmukti, Cikarang Pusat, Bekasi 17530</p>
-      </div>
+    </div>
     <div class="footer-bottom">
-      <span data-i18n="footer_copyright">© 2024 CV. Maisan Bintang Muda. All rights reserved.</span>
+      <span data-i18n="footer_copyright">&copy; 2024 CV. Maisan Bintang Muda. All rights reserved.</span>
     </div>
   </footer>
+</div>
+
+<!-- BLOG ARCHIVE PAGE -->
+<div id="blogArchivePage" style="display:none;">
+  <div class="gallery-top">
+    <button class="back-btn" onclick="closeBlogArchive()">&larr; <span data-i18n="gallery_back">Kembali</span></button>
+    <h2 data-i18n="blog_title">Artikel & Berita</h2>
+    <div style="width: 80px;"></div> <!-- Spacer -->
+  </div>
+  <div class="gallery-wrap">
+    <div class="projects-grid" id="blogArchiveGrid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));"></div>
+  </div>
+</div>
+
+<!-- BLOG MODAL -->
+<div class="admin-modal" id="blogAdminModal">
+  <div class="admin-modal-card" style="max-width: 850px; width: 95%;">
+    <button class="admin-modal-close" onclick="closeBlogAdminModal()">&times;</button>
+    <h3 id="blogModalTitle" style="border-bottom: 2px solid var(--blue); padding-bottom: 10px; margin-bottom: 20px;">📝 Editor Artikel Blog</h3>
+    
+    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 15px; margin-bottom: 15px;">
+      <div>
+        <label style="display: block; font-size: 11px; font-weight: 700; margin-bottom: 5px; color: var(--navy); text-transform: uppercase;">Judul Artikel</label>
+        <input type="text" id="blogTitleInput" placeholder="Masukkan judul yang menarik..." style="margin-bottom: 0;">
+      </div>
+      <div>
+        <label style="display: block; font-size: 11px; font-weight: 700; margin-bottom: 5px; color: var(--navy); text-transform: uppercase;">Gambar Utama</label>
+        <input type="file" id="blogImageInput" accept="image/*" style="padding: 8px; border: 1px dashed #ccc; background: #f9f9f9; font-size: 12px;">
+      </div>
+    </div>
+
+    <label style="display: block; font-size: 11px; font-weight: 700; margin-bottom: 5px; color: var(--navy); text-transform: uppercase;">Konten (Blogspot Style Editor)</label>
+    <div class="editor-toolbar" style="background: #f3f4f6; padding: 10px; border: 1px solid #d1d5db; border-bottom: none; border-radius: 8px 8px 0 0; display: flex; gap: 8px; flex-wrap: wrap;">
+      <button onclick="document.execCommand('bold', false, null)" type="button" style="padding: 5px 12px; cursor: pointer; border: 1px solid #ccc; background: #fff; font-weight: bold; border-radius: 4px;">B</button>
+      <button onclick="document.execCommand('italic', false, null)" type="button" style="padding: 5px 12px; cursor: pointer; border: 1px solid #ccc; background: #fff; font-style: italic; border-radius: 4px;">I</button>
+      <button onclick="document.execCommand('insertUnorderedList', false, null)" type="button" style="padding: 5px 10px; cursor: pointer; border: 1px solid #ccc; background: #fff; border-radius: 4px;">• List</button>
+      <button onclick="document.execCommand('formatBlock', false, 'h3')" type="button" style="padding: 5px 10px; cursor: pointer; border: 1px solid #ccc; background: #fff; border-radius: 4px;">Sub-Judul</button>
+      <button onclick="document.execCommand('createLink', false, prompt('Masukkan URL:', 'https://'))" type="button" style="padding: 5px 10px; cursor: pointer; border: 1px solid #ccc; background: #fff; border-radius: 4px; color: blue; text-decoration: underline;">Link</button>
+    </div>
+    <div id="blogRichEditor" contenteditable="true" style="min-height: 300px; max-height: 450px; border: 1px solid #d1d5db; padding: 20px; overflow-y: auto; background: #fff; border-radius: 0 0 8px 8px; outline: none; line-height: 1.7; font-size: 15px; color: #333;"></div>
+    
+    <div class="admin-modal-actions" style="margin-top: 20px; justify-content: flex-end;">
+      <button class="btn btn-blue" id="blogSubmitBtn" style="background: #fbbf24; border-color: #fbbf24; color: #000;">Publikasikan Sekarang</button>
+      <button class="btn btn-outline" onclick="closeBlogAdminModal()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<div class="admin-modal" id="blogViewModal">
+  <div class="admin-modal-card" style="max-width: 800px; height: 90vh; overflow-y: auto;">
+    <button class="admin-modal-close" onclick="document.getElementById('blogViewModal').classList.remove('active')">&times;</button>
+    <img id="viewBlogImg" src="" alt="" style="width: 100%; height: 300px; object-fit: cover; border-radius: 8px; margin-bottom: 20px;">
+    <h2 id="viewBlogTitle" style="color: var(--navy); margin-bottom: 10px;"></h2>
+    <div id="viewBlogMeta" style="color: var(--muted); font-size: 14px; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;"></div>
+    <div id="viewBlogContent" style="line-height: 1.8; color: #374151;"></div>
+  </div>
 </div>
 
 <!-- PROFILE PAGE -->
 <div id="profilePage">
   <div class="profile-top">
-    <button class="back-btn" onclick="closeProfile()">← Kembali ke Website</button>
-    <span style="color:var(--muted);font-size:13px">Company Profile</span>
+    <button class="back-btn" onclick="closeProfile()">&larr; <span data-i18n="profile_back">Kembali ke Website</span></button>
+    <span class="profile-span" data-i18n="profile_title">Company Profile</span>
   </div>
   <div class="profile-cover">
-    <h1>CV. MAISAN BINTANG MUDA</h1>
+    <h1><img src="mbm logo new.png" alt="Logo" class="profile-logo-img">CV. MAISAN BINTANG MUDA</h1>
     <p>CONTRACTOR, GENERAL SUPPLIER, PERDAGANGAN UMUM DAN JASA</p>
     <div class="red-line"></div>
   </div>
   <div class="profile-content">
     <div class="profile-section">
-      <h2>Sambutan Direktur</h2>
-      <p>Assalamu'alaikum Wr. Wb.</p>
-      <p>Dengan penuh rasa syukur, kami hadirkan CV. Maisan Bintang Muda sebagai mitra konstruksi yang mengutamakan kualitas, integritas, dan ketepatan waktu. Kami percaya infrastruktur jalan yang kokoh adalah fondasi kemajuan ekonomi bangsa.</p>
-      <p>Berbekal pengalaman lebih dari 10 tahun di wilayah Bekasi, Cikarang, dan Karawang, kami siap memberikan solusi terbaik untuk pekerjaan pondasi jalan dan pengadaan material - mulai dari aspal hotmix, limestone, hingga basecourse A dan B sesuai standar spesifikasi teknis.</p>
-      <p style="margin-top:20px;font-weight:600;color:var(--navy)">Hormat kami,<br>Direktur Utama<br>CV. Maisan Bintang Muda</p>
+      <h2 data-i18n="profile_greeting_title">Sambutan Direktur</h2>
+      <p data-i18n="profile_greeting">Assalamu'alaikum Wr. Wb.</p>
+      <p data-i18n="profile_greeting_text1">Dengan penuh rasa syukur, kami hadirkan CV. Maisan Bintang Muda sebagai mitra konstruksi yang mengutamakan kualitas, integritas, dan ketepatan waktu. Kami percaya infrastruktur jalan yang kokoh adalah fondasi kemajuan ekonomi bangsa.</p>
+      <p data-i18n="profile_greeting_text2">Berbekal pengalaman lebih dari 10 tahun di wilayah Bekasi, Cikarang, dan Karawang, kami siap memberikan solusi terbaik untuk pekerjaan pondasi jalan dan pengadaan material - mulai dari aspal hotmix, limestone, hingga basecourse A dan B sesuai standar spesifikasi teknis.</p>
+      <p class="signature-p"><span data-i18n="profile_signature_respect">Hormat kami,</span><br><span data-i18n="profile_director">Direktur Utama</span><br>CV. Maisan Bintang Muda</p>
     </div>
 
     <div class="profile-section">
-      <h2>Visi & Misi</h2>
+      <h2 data-i18n="profile_vm_title">Visi &amp; Misi</h2>
       <div class="vision-mission">
         <div class="vm-card">
-          <h4>VISI</h4>
-          <p>Menjadi kontraktor pondasi jalan dan supplier material terdepan di Indonesia yang mengutamakan mutu, keselamatan, dan keberlanjutan.</p>
+          <h4 data-i18n="profile_vision_title">VISI</h4>
+          <p data-i18n="profile_vision_text">Menjadi kontraktor pondasi jalan dan supplier material terdepan di Indonesia yang mengutamakan mutu, keselamatan, dan keberlanjutan.</p>
         </div>
         <div class="vm-card">
-          <h4>MISI</h4>
+          <h4 data-i18n="profile_mission_title">MISI</h4>
           <ul>
-            <li>Menyediakan material berkualitas sesuai SNI dengan harga kompetitif</li>
-            <li>Menyelesaikan proyek tepat waktu dengan standar K3</li>
-            <li>Membangun kemitraan jangka panjang berbasis kepercayaan</li>
-            <li>Mengembangkan SDM dan teknologi konstruksi terkini</li>
+            <li data-i18n="profile_mission_point1">Menyediakan material berkualitas sesuai SNI dengan harga kompetitif</li>
+            <li data-i18n="profile_mission_point2">Menyelesaikan proyek tepat waktu dengan standar K3</li>
+            <li data-i18n="profile_mission_point3">Membangun kemitraan jangka panjang berbasis kepercayaan</li>
+            <li data-i18n="profile_mission_point4">Mengembangkan SDM dan teknologi konstruksi terkini</li>
           </ul>
         </div>
       </div>
     </div>
 
     <div class="profile-section">
-      <h2>Legalitas Perusahaan</h2>
-      <table class="legal-table">
-        <thead><tr><th>Dokumen</th><th>Nomor</th><th>Keterangan</th></tr></thead>
-        <tbody>
-          <tr><td>Akta Pendirian</td><td>-</td><td>Notaris Terdaftar</td></tr>
-          <tr><td>NIB</td><td>-</td><td>OSS RBA</td></tr>
-          <tr><td>NPWP</td><td>-</td><td>Terdaftar</td></tr>
-          <tr><td>Sertifikat Badan Usaha</td><td>-</td><td>Jasa Konstruksi</td></tr>
-        </tbody>
+      <h2 data-i18n="profile_legal_title">Legalitas Perusahaan</h2>
+      <table class="legal-table" id="legalTable">
+        <thead><tr><th data-i18n="profile_legal_doc">Dokumen</th><th data-i18n="profile_legal_no">Nomor</th><th data-i18n="profile_legal_note">Keterangan</th></tr></thead>
+        <tbody id="legalTableBody"></tbody>
       </table>
     </div>
 
     <div class="profile-section">
-      <h2>Layanan Kami</h2>
-      <h3>1. Pondasi Jalan</h3>
-      <p>Pekerjaan persiapan lahan, galian, timbunan pilihan, pemadatan dengan vibro roller, dan pembentukan badan jalan sesuai elevasi desain.</p>
-      <h3>2. Aspal Hotmix</h3>
-      <p>Supply dan penggelaran AC-WC, AC-BC, AC-Base dengan AMP terpercaya. Melayani tonase kecil hingga besar.</p>
-      <h3>3. Limestone</h3>
-      <p>Penyediaan batu kapur (limestone) untuk stabilisasi tanah dasar dan campuran pondasi.</p>
-      <h3>4. Basecourse A</h3>
-      <p>Material lapis pondasi atas (LPA) dengan gradasi sesuai SNI, daya dukung tinggi.</p>
-      <h3>5. Basecourse B</h3>
-      <p>Material lapis pondasi bawah (LPB) untuk distribusi beban ke tanah dasar.</p>
+      <h2 data-i18n="profile_services_title">Layanan Kami</h2>
+      <h3 data-i18n="profile_service1_title">1. Pondasi Jalan</h3>
+      <p data-i18n="profile_service1_desc">Pekerjaan persiapan lahan, galian, timbunan pilihan, serta pembentukan badan jalan sesuai elevasi desain.</p>
+      <h3 data-i18n="profile_service2_title">2. Limestone &amp; Basecourse</h3>
+      <p data-i18n="profile_service2_desc">Pengadaan material Limestone, Basecourse A, dan Basecourse B untuk lapis pondasi jalan dengan daya dukung maksimal.</p>
+      <h3 data-i18n="profile_service3_title">3. Pasir &amp; Abu Batu</h3>
+      <p data-i18n="profile_service3_desc">Menyediakan segala jenis pasir (Pasir Cor, Pasir Pasang, dll) dan Abu Batu untuk kebutuhan beton maupun pengaspalan (pihak ketiga).</p>
+      <h3 data-i18n="profile_service4_title">4. Batu Kali / Belah</h3>
+      <p data-i18n="profile_service4_desc">Material batu alam berkualitas untuk konstruksi pondasi bangunan, tembok penahan tanah, dan saluran air.</p>
+      <h3 data-i18n="profile_service5_title">5. Batu Split</h3>
+      <p data-i18n="profile_service5_desc">Penyediaan batu pecah/split berbagai ukuran (1/2, 2/3, dsb) untuk kebutuhan pengecoran beton.</p>
     </div>
 
     <div class="profile-section">
-      <h2>Pengalaman Proyek</h2>
-      <table class="project-table">
-        <thead><tr><th>No</th><th>Nama Pekerjaan</th><th>Lokasi</th><th>Tahun</th><th>Pemberi Tugas</th></tr></thead>
-        <tbody>
-          <tr><td>1</td><td>Peningkatan Jalan Kawasan Industri</td><td>Deltamas, Cikarang</td><td>2023</td><td>Swasta</td></tr>
-          <tr><td>2</td><td>Supply Basecourse A & B</td><td>Cikarang Pusat</td><td>2023</td><td>Kontraktor Utama</td></tr>
-          <tr><td>3</td><td>Penggelaran Aspal Hotmix Perumahan</td><td>Bekasi</td><td>2022</td><td>Developer</td></tr>
-          <tr><td>4</td><td>Pemadatan & Limestone Jalan Akses</td><td>Karawang</td><td>2022</td><td>Industri</td></tr>
-          <tr><td>5</td><td>Patching Jalan Kawasan</td><td>MM2100</td><td>2021</td><td>Estate</td></tr>
-          <tr><td>6</td><td>Perkerasan Jalan LPA/LPB</td><td>Cibitung</td><td>2021</td><td>Swasta</td></tr>
-        </tbody>
+      <h2 data-i18n="profile_experience_title">Pengalaman Proyek</h2>
+      <table class="project-table" id="projectTable">
+        <thead><tr><th data-i18n="profile_exp_no">No</th><th data-i18n="profile_exp_name">Nama Pekerjaan</th><th data-i18n="profile_exp_location">Lokasi</th><th data-i18n="profile_exp_year">Tahun</th><th data-i18n="profile_exp_client">Pemberi Tugas</th></tr></thead>
+        <tbody id="projectTableBody"></tbody>
       </table>
     </div>
 
     <div class="profile-section">
-      <h2>Kontak Kami</h2>
+      <h2 data-i18n="profile_contact_title">Kontak Kami</h2>
       <p><strong>CV. MAISAN BINTANG MUDA</strong><br>
-      Jl. Raya Tegal Danas - Deltamas No.26, Kp. Kandang Gereng RT01/RW04 Ds. Hegarmukti, Cikarang Pusat, Bekasi 17530</p>
-      <p>HP: 0813-1157-8023 | WA: 0822-1385-3865<br>
+      <span data-i18n="profile_contact_address">Jl. Raya Tegal Danas - Deltamas No.26, Kp. Kandang Gereng RT01/RW04 Ds. Hegarmukti, Cikarang Pusat, Bekasi 17530</span></p>
+      <p data-i18n="profile_contact_info">HP: 0813-1157-8023 | WA: 0822-1385-3865<br>
       Email: maisan.bintangmuda@gmail.com</p>
-      <div style="margin-top: 20px">
-        <a href="https://wa.me/6282213853865" target="_blank" class="btn btn-red">Hubungi via WhatsApp</a>
+      <div class="contact-div">
+        <a href="https://wa.me/6282213853865" target="_blank" rel="noopener" class="btn btn-red" data-i18n="profile_contact_btn">Hubungi via WhatsApp</a>
       </div>
     </div>
   </div>
@@ -864,15 +752,15 @@ section{padding:80px 0}
 <!-- GALLERY PAGE -->
 <div id="galleryPage">
   <div class="gallery-top">
-    <button class="back-btn" onclick="closeGallery()">← Kembali</button>
-    <h2>Galeri Proyek - MBM</h2>
-    <button class="btn btn-blue" id="adminLoginBtn">Login Admin</button>
+    <button class="back-btn" onclick="closeGallery()">&larr; <span data-i18n="gallery_back">Kembali</span></button>
+    <h2 data-i18n="gallery_title">Galeri Proyek - MBM</h2>
+    <button class="btn btn-blue" id="adminLoginBtn" data-i18n="gallery_admin_login">Login Admin</button>
   </div>
   <div class="gallery-wrap">
     <div class="drop-zone" id="dropZone">
-      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="color:var(--blue);margin:0 auto"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
-      <h3>Seret & Lepas Ribuan Foto Disini</h3>
-      <p>atau klik untuk pilih file • Disimpan otomatis di browser (IndexedDB)</p>
+      <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" class="svg-icon"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+      <h3 data-i18n="gallery_dragdrop_title">Seret &amp; Lepas Ribuan Foto Disini</h3>
+      <p data-i18n="gallery_dragdrop_hint">atau klik untuk pilih file &bull; Disimpan otomatis di browser (IndexedDB)</p>
       <input type="file" id="fileInput" multiple accept="image/*" hidden>
       <div class="upload-hint" id="uploadHint">Hanya admin yang dapat upload foto. Klik Login Admin untuk akses.</div>
     </div>
@@ -880,10 +768,10 @@ section{padding:80px 0}
     <div class="gallery-controls">
       <div class="search-box">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-        <input type="text" id="searchInput" placeholder="Cari foto...">
+        <input type="text" id="searchInput" placeholder="Cari foto..." data-i18n-placeholder="gallery_search_placeholder">
       </div>
-      <div class="storage-info" id="storageInfo">0 Foto • 0 MB</div>
-      <button class="btn-delete" id="deleteAll">Hapus Semua</button>
+      <div class="storage-info" id="storageInfo">0 Foto - 0 MB</div>
+      <button class="btn-delete" id="deleteAll" data-i18n="gallery_delete_all">Hapus Semua</button>
     </div>
 
     <div class="progress-wrap" id="progressWrap"><div class="progress-fill" id="progressFill"></div></div>
@@ -891,31 +779,62 @@ section{padding:80px 0}
     <div class="gallery-grid" id="galleryGrid"></div>
     <div class="empty-state" id="emptyState">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="64" height="64"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
-      <h3 style="margin-top:10px;color:var(--navy)">Belum ada foto</h3>
-      <p>Upload foto proyek Anda, sistem mampu menyimpan ribuan foto secara lokal.</p>
+      <h3 class="gallery-h3" data-i18n="gallery_no_photos">Belum ada foto</h3>
+      <p data-i18n="gallery_empty_text">Upload foto proyek Anda, sistem mampu menyimpan ribuan foto secara lokal.</p>
     </div>
   </div>
 
   <div class="admin-modal" id="adminModal">
     <div class="admin-modal-card">
-      <button class="admin-modal-close" id="adminModalClose">×</button>
-      <h3>Login Admin MBM</h3>
-      <p>Masukkan kata sandi untuk mengaktifkan upload dan pengelolaan foto.</p>
-      <input type="password" id="adminPasswordInput" placeholder="Kata sandi admin" autocomplete="current-password">
+      <button class="admin-modal-close" id="adminModalClose">&times;</button>
+      <h3 data-i18n="gallery_login_title">Login Admin MBM</h3>
+      <p data-i18n="gallery_login_text">Masukkan kata sandi untuk mengaktifkan upload dan pengelolaan foto.</p>
+      <input type="password" id="adminPasswordInput" placeholder="Kata sandi admin" data-i18n-placeholder="gallery_password_placeholder" autocomplete="current-password">
       <div class="admin-modal-actions">
-        <button class="btn btn-blue" id="adminSubmitBtn">Masuk</button>
-        <button class="btn btn-outline" id="adminCancelBtn">Batal</button>
+        <button class="btn btn-blue" id="adminSubmitBtn" data-i18n="gallery_login_btn">Masuk</button>
+        <button class="btn btn-outline" id="adminCancelBtn" data-i18n="gallery_cancel_btn">Batal</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-modal" id="projectDescModal">
+    <div class="admin-modal-card">
+      <button class="admin-modal-close" id="projectDescModalClose">&times;</button>
+      <h3>Tambah Keterangan Proyek</h3>
+      <p>Masukkan nama dan keterangan proyek untuk foto ini.</p>
+      <input type="text" id="projectNameInput" placeholder="Nama Proyek" maxlength="100">
+      <textarea id="projectDescInput" placeholder="Keterangan Proyek" maxlength="500"></textarea>
+      <div class="admin-modal-actions">
+        <button class="btn btn-blue" id="projectDescSubmitBtn">Simpan</button>
+        <button class="btn btn-outline" id="projectDescCancelBtn">Batal</button>
       </div>
     </div>
   </div>
 
   <div class="lightbox" id="lightbox">
-    <button class="lightbox-close" onclick="closeLightbox()">×</button>
+    <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
     <img id="lightboxImg" src="" alt="">
   </div>
 </div>
 
 <script>
+function getSafeStorageItem(key){
+  try {
+    return localStorage.getItem(key);
+  } catch (error) {
+    console.warn('localStorage tidak tersedia untuk membaca', key, error);
+    return null;
+  }
+}
+
+function setSafeStorageItem(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch (error) {
+    console.warn('localStorage tidak tersedia untuk menyimpan', key, error);
+  }
+}
+
 // Translations
 const translations = {
   id: {
@@ -923,89 +842,359 @@ const translations = {
     nav_home: "BERANDA", nav_about: "TENTANG KAMI", nav_services: "LAYANAN", nav_projects: "PROYEK", nav_contact: "KONTAK",
     tagline: "CONTRACTOR & SUPPLIER",
     hero_title: "Kontraktor Pondasi Jalan & Supplier Material Terpercaya",
-    hero_subtitle: "CV. Maisan Bintang Muda menyediakan solusi lengkap untuk konstruksi pondasi jalan, pengadaan aspal, limestone, dan basecourse dengan kualitas terjamin dan pengiriman tepat waktu di seluruh Jabodetabek.",
+    hero_subtitle: "CV. Maisan Bintang Muda menyediakan solusi lengkap untuk konstruksi pondasi jalan, pengadaan pasir, limestone, dan basecourse dengan kualitas terjamin dan pengiriman tepat waktu di seluruh Jabodetabek.",
     btn_contact: "Hubungi Kami", btn_profile: "View Company Profile",
     feature1_title: "Kontraktor Pondasi", feature1_desc: "Spesialis pekerjaan pondasi jalan, pemadatan, dan penyiapan lahan untuk proyek infrastruktur.",
-    feature2_title: "Supplier Material", feature2_desc: "Penyedia aspal hotmix, limestone, basecourse A & B dengan mutu sesuai spesifikasi.",
+    feature2_title: "Supplier Material", feature2_desc: "Penyedia limestone, basecourse, pasir, dan batu belah dengan mutu sesuai spesifikasi teknis.",
     feature3_title: "Jangkauan Luas", feature3_desc: "Melayani wilayah Bekasi, Cikarang, Karawang, dan seluruh Jabodetabek.",
     about_title: "Tentang Kami", about_subtitle: "Mitra Terpercaya Konstruksi Jalan",
-    about_p1: "CV. MAISAN BINTANG MUDA adalah perusahaan yang bergerak di bidang CONTRACTOR, GENERAL SUPPLIER, PERDAGANGAN UMUM DAN JASA. Berkedudukan di Cikarang Pusat, Bekasi, kami fokus pada pembangunan pondasi jalan dan penyediaan material konstruksi berkualitas.",
+    about_p1: "CV. MAISAN BINTANG MUDA adalah perusahaan yang bergerak di bidang CONTRACTOR, GENERAL SUPPLIER, PERDAGANGAN UMUM DAN JASA. Berkedudukan di Cikarang Pusat, Bekasi, kami fokus pada pembangunan pondasi jalan dan penyediaan material alam berkualitas.",
     about_p2: "Dengan tim berpengalaman, peralatan lengkap, dan komitmen terhadap mutu serta K3, kami telah dipercaya menangani berbagai proyek pemerintah dan swasta. Kepuasan klien adalah prioritas utama kami.",
     about_point1: "Tenaga Ahli Berpengalaman", about_point2: "Material Sesuai SNI", about_point3: "Tepat Waktu & Kompetitif",
     services_title: "Layanan Utama", services_subtitle: "Solusi lengkap untuk kebutuhan konstruksi jalan Anda",
     service1_title: "Pondasi Jalan", service1_desc: "Pekerjaan galian, timbunan, pemadatan, dan perkerasan pondasi.",
-    service2_title: "Aspal Hotmix", service2_desc: "Supply dan gelar aspal AC-WC, AC-BC, AC-Base.",
-    service3_title: "Limestone", service3_desc: "Pengadaan batu gamping untuk stabilisasi tanah.",
+    service2_title: "Pasir & Abu Batu", service2_desc: "Menyediakan berbagai jenis pasir konstruksi dan abu batu berkualitas tinggi.",
+    service3_title: "Batu Kali & Split", service3_desc: "Penyedia batu belah/kali dan batu split berbagai ukuran untuk pondasi bangunan.",
     service4_title: "Basecourse A", service4_desc: "Material lapis pondasi atas dengan gradasi terbaik.",
     service5_title: "Basecourse B", service5_desc: "Material lapis pondasi bawah untuk kekuatan struktur.",
     stats1: "10+", stats1_label: "Tahun Pengalaman", stats2: "150+", stats2_label: "Proyek Selesai", stats3: "50+", stats3_label: "Klien Puas", stats4: "100%", stats4_label: "Komitmen Mutu",
     projects_title: "Proyek Terbaru", projects_subtitle: "Beberapa proyek yang telah kami kerjakan",
-    project1_title: "Peningkatan Jalan Kawasan Deltamas", project1_desc: "Pekerjaan basecourse dan aspal hotmix",
-    project2_title: "Perkerasan Jalan Industri Cikarang", project2_desc: "Supply limestone & pemadatan",
-    project3_title: "Pemeliharaan Jalan Bekasi", project3_desc: "Patching dan overlay AC-WC",
+    blog_title: "Artikel & Berita",
+    blog_subtitle: "Informasi dan tips seputar dunia konstruksi jalan dan material.",
+    nav_blog: "BLOG",
+    btn_view_all_blog: "Lihat Artikel Lainnya",
+    project1_title: "Pasir Konstruksi Berkualitas", project1_desc: "Pasir bersih & terukur untuk beton, plesteran, pengecoran SNI",
+    project2_title: "Limestone Premium Grade", project2_desc: "Limestone putih grade premium, daya dukung maksimal",
+    project3_title: "Batu Belah Alam (Batu Kali)", project3_desc: "Batu kali untuk pondasi, penahan tanah, saluran air",
+    project4_title: "Basecourse A & B - Lapis Pondasi", project4_desc: "Lapis pondasi atas (A) dan bawah (B) sesuai spesifikasi",
+    project5_title: "Batu Split Berbagai Ukuran", project5_desc: "Batu pecah 1/2\", 2/3\" untuk beton & pengaspalan",
+    project6_title: "Solusi Material Lengkap", project6_desc: "Material alam berkualitas dengan pengiriman cepat",
     btn_view_all: "Lihat Semua",
     cta_title: "Siap Membangun Proyek Anda?", cta_subtitle: "Konsultasikan kebutuhan pondasi jalan dan material Anda dengan tim ahli kami.", cta_btn: "Chat WhatsApp Sekarang",
     footer_about_title: "CV. MAISAN BINTANG MUDA", footer_about_text: "Kontraktor pondasi jalan dan supplier material terpercaya di Bekasi & Jabodetabek.",
     footer_services_title: "Layanan", footer_contact_title: "Kontak", footer_address_title: "Alamat Kantor",
-    footer_copyright: "© 2024 CV. Maisan Bintang Muda. All rights reserved."
+    footer_copyright: "© 2024 CV. Maisan Bintang Muda. All rights reserved.",
+    profile_back: "Kembali ke Website", profile_title: "Company Profile",
+    profile_greeting_title: "Sambutan Direktur", profile_greeting: "Assalamu'alaikum Wr. Wb.",
+    profile_greeting_text1: "Dengan penuh rasa syukur, kami hadirkan CV. Maisan Bintang Muda sebagai mitra konstruksi yang mengutamakan kualitas, integritas, dan ketepatan waktu. Kami percaya infrastruktur jalan yang kokoh adalah fondasi kemajuan ekonomi bangsa.",
+    profile_greeting_text2: "Berbekal pengalaman lebih dari 10 tahun di wilayah Bekasi, Cikarang, dan Karawang, kami siap memberikan solusi terbaik untuk pekerjaan pondasi jalan dan pengadaan material - mulai dari aspal hotmix, limestone, hingga basecourse A dan B sesuai standar spesifikasi teknis.",
+    profile_signature_respect: "Hormat kami,", profile_director: "Direktur Utama",
+    profile_vm_title: "Visi & Misi", profile_vision_title: "VISI",
+    profile_vision_text: "Menjadi kontraktor pondasi jalan dan supplier material terdepan di Indonesia yang mengutamakan mutu, keselamatan, dan keberlanjutan.",
+    profile_mission_title: "MISI",
+    profile_mission_point1: "Menyediakan material berkualitas sesuai SNI dengan harga kompetitif",
+    profile_mission_point2: "Menyelesaikan proyek tepat waktu dengan standar K3",
+    profile_mission_point3: "Membangun kemitraan jangka panjang berbasis kepercayaan",
+    profile_mission_point4: "Mengembangkan SDM dan teknologi konstruksi terkini",
+    profile_legal_title: "Legalitas Perusahaan",
+    profile_legal_doc: "Dokumen", profile_legal_no: "Nomor", profile_legal_note: "Keterangan",
+    profile_legal_1_doc: "Akta Pendirian", profile_legal_1_note: "Notaris Terdaftar",
+    profile_legal_2_doc: "NIB", profile_legal_2_note: "OSS RBA",
+    profile_legal_3_doc: "NPWP", profile_legal_3_note: "Terdaftar",
+    profile_legal_4_doc: "Sertifikat Badan Usaha", profile_legal_4_note: "Jasa Konstruksi",
+    profile_services_title: "Layanan Kami",
+    profile_service1_title: "1. Pondasi Jalan", profile_service1_desc: "Pekerjaan persiapan lahan, galian, timbunan pilihan, serta pembentukan badan jalan sesuai elevasi desain.",
+    profile_service2_title: "2. Limestone & Basecourse", profile_service2_desc: "Pengadaan material Limestone, Basecourse A, dan Basecourse B untuk lapis pondasi jalan dengan daya dukung maksimal.",
+    profile_service3_title: "3. Pasir & Abu Batu", profile_service3_desc: "Menyediakan segala jenis pasir (Pasir Cor, Pasir Pasang, dll) dan Abu Batu untuk kebutuhan beton maupun pengaspalan (pihak ketiga).",
+    profile_service4_title: "4. Batu Kali / Belah", profile_service4_desc: "Material batu alam berkualitas untuk konstruksi pondasi bangunan, tembok penahan tanah, dan saluran air.",
+    profile_service5_title: "5. Batu Split", profile_service5_desc: "Penyediaan batu pecah/split berbagai ukuran (1/2, 2/3, dsb) untuk kebutuhan pengecoran beton.",
+    profile_experience_title: "Pengalaman Proyek",
+    profile_exp_no: "No", profile_exp_name: "Nama Pekerjaan", profile_exp_location: "Lokasi", profile_exp_year: "Tahun", profile_exp_client: "Pemberi Tugas",
+    profile_exp_1_name: "Peningkatan Jalan Kawasan Industri", profile_exp_1_location: "Deltamas, Cikarang", profile_exp_1_year: "2023", profile_exp_1_client: "Swasta",
+    profile_exp_2_name: "Supply Basecourse A &amp; B", profile_exp_2_location: "Cikarang Pusat", profile_exp_2_year: "2023", profile_exp_2_client: "Kontraktor Utama",
+    profile_exp_3_name: "Supply Batu Belah &amp; Pasir Pondasi", profile_exp_3_location: "Bekasi", profile_exp_3_year: "2022", profile_exp_3_client: "Developer",
+    profile_exp_4_name: "Pemadatan &amp; Limestone Jalan Akses", profile_exp_4_location: "Karawang", profile_exp_4_year: "2022", profile_exp_4_client: "Industri",
+    profile_exp_5_name: "Patching Jalan Kawasan", profile_exp_5_location: "MM2100", profile_exp_5_year: "2021", profile_exp_5_client: "Estate",
+    profile_exp_6_name: "Supply Split &amp; Abu Batu Cor", profile_exp_6_location: "Cibitung", profile_exp_6_year: "2021", profile_exp_6_client: "Swasta",
+    profile_contact_title: "Kontak Kami",
+    profile_contact_address: "Jl. Raya Tegal Danas - Deltamas No.26, Kp. Kandang Gereng RT01/RW04 Ds. Hegarmukti, Cikarang Pusat, Bekasi 17530",
+    profile_contact_info: "HP: 0813-1157-8023 | WA: 0822-1385-3865<br>Email: maisan.bintangmuda@gmail.com",
+    blog_s1_title: "Pentingnya Pemadatan Tanah pada Pondasi Jalan",
+    blog_s1_desc: "Proses pemadatan tanah yang benar adalah kunci umur panjang infrastruktur jalan...",
+    blog_s1_date: "15 Apr 2024",
+    blog_s2_title: "Mengapa Pasir SNI Penting untuk Pengecoran?",
+    blog_s2_desc: "Kandungan lumpur pada pasir sangat mempengaruhi kekuatan beton dalam jangka panjang...",
+    blog_s2_date: "08 Apr 2024",
+    blog_s3_title: "Teknik Perbaikan Jalan Berlubang yang Efektif",
+    blog_s3_desc: "Metode patching dan pelapisan ulang harus dilakukan dengan standar teknis yang tepat...",
+    blog_s3_date: "01 Apr 2024",
+    blog_read_more: "Baca Selengkapnya",
+    profile_contact_btn: "Hubungi via WhatsApp",
+    gallery_title: "Galeri Proyek - MBM", gallery_back: "Kembali", gallery_admin_login: "Login Admin",
+    gallery_dragdrop_title: "Seret & Lepas Ribuan Foto Disini",
+    gallery_dragdrop_hint: "atau klik untuk pilih file • Disimpan otomatis di browser (IndexedDB)",
+    gallery_search_placeholder: "Cari foto...", gallery_delete_all: "Hapus Semua",
+    gallery_no_photos: "Belum ada foto",
+    gallery_empty_text: "Upload foto proyek Anda, sistem mampu menyimpan ribuan foto secara lokal.",
+    gallery_login_title: "Login Admin MBM", gallery_login_text: "Masukkan kata sandi untuk mengaktifkan upload dan pengelolaan foto.",
+    gallery_password_placeholder: "Kata sandi admin", gallery_login_btn: "Masuk", gallery_cancel_btn: "Batal",
+    gallery_upload_hint_admin: "Mode admin aktif. Anda dapat mengupload foto proyek.",
+    gallery_admin_logout: "Logout Admin",
+    gallery_admin_required: "Hanya admin yang dapat mengupload gambar.",
+    gallery_delete_confirm: "Hapus foto ini?",
+    gallery_delete_admin_required: "Hanya admin yang dapat menghapus foto.",
+    gallery_delete_all_admin_required: "Hanya admin yang dapat menghapus semua foto.",
+    gallery_delete_all_confirm: "Hapus SEMUA foto? Tindakan tidak dapat dibatalkan.",
+    gallery_login_success: "Mode admin aktif. Upload dan pengelolaan gambar diizinkan.",
+    gallery_login_error: "Kata sandi salah. Silakan coba lagi.",
+    gallery_login_browser_error: "Login admin tidak bisa diproses di browser ini."
   },
   en: {
     topbar_left: "Building Indonesia's Infrastructure",
     nav_home: "HOME", nav_about: "ABOUT US", nav_services: "SERVICES", nav_projects: "PROJECTS", nav_contact: "CONTACT",
     tagline: "CONTRACTOR & SUPPLIER",
     hero_title: "Trusted Road Foundation Contractor & Material Supplier",
-    hero_subtitle: "CV. Maisan Bintang Muda provides complete solutions for road foundation construction, asphalt, limestone, and basecourse procurement with guaranteed quality and on-time delivery across Greater Jakarta.",
+    hero_subtitle: "CV. Maisan Bintang Muda provides complete solutions for road foundation construction, sand, limestone, and basecourse procurement with guaranteed quality and on-time delivery across Greater Jakarta.",
     btn_contact: "Contact Us", btn_profile: "View Company Profile",
     feature1_title: "Foundation Contractor", feature1_desc: "Specialist in road foundation, soil compaction, and site preparation for infrastructure projects.",
-    feature2_title: "Material Supplier", feature2_desc: "Provider of hotmix asphalt, limestone, basecourse A & B meeting specification standards.",
+    feature2_title: "Material Supplier", feature2_desc: "Provider of limestone, basecourse, sand, and split stones meeting specification standards.",
     feature3_title: "Wide Coverage", feature3_desc: "Serving Bekasi, Cikarang, Karawang, and Greater Jakarta area.",
     about_title: "About Us", about_subtitle: "Your Trusted Road Construction Partner",
-    about_p1: "CV. MAISAN BINTANG MUDA is engaged in CONTRACTOR, GENERAL SUPPLIER, TRADING AND SERVICES. Based in Cikarang Pusat, Bekasi, we focus on road foundation construction and quality construction material supply.",
+    about_p1: "CV. MAISAN BINTANG MUDA is engaged in CONTRACTOR, GENERAL SUPPLIER, TRADING AND SERVICES. Based in Cikarang Pusat, Bekasi, we focus on road foundation construction and quality natural material supply.",
     about_p2: "With experienced team, complete equipment, and commitment to quality and HSE, we are trusted for various government and private projects. Client satisfaction is our priority.",
     about_point1: "Experienced Experts", about_point2: "SNI Standard Materials", about_point3: "On-Time & Competitive",
     services_title: "Main Services", services_subtitle: "Complete solutions for your road construction needs",
     service1_title: "Road Foundation", service1_desc: "Excavation, embankment, compaction, and foundation works.",
-    service2_title: "Hotmix Asphalt", service2_desc: "Supply and laying AC-WC, AC-BC, AC-Base.",
-    service3_title: "Limestone", service3_desc: "Limestone procurement for soil stabilization.",
+    service2_title: "Sand & Stone Dust", service2_desc: "Providing various types of construction sand and high-quality stone dust.",
+    service3_title: "River & Split Stone", service3_desc: "Provider of river/split stone and crushed stone for foundation projects.",
     service4_title: "Basecourse A", service4_desc: "Top base layer material with best gradation.",
     service5_title: "Basecourse B", service5_desc: "Bottom base layer for structural strength.",
     stats1: "10+", stats1_label: "Years Experience", stats2: "150+", stats2_label: "Projects Completed", stats3: "50+", stats3_label: "Happy Clients", stats4: "100%", stats4_label: "Quality Commitment",
     projects_title: "Recent Projects", projects_subtitle: "Some of our completed works",
-    project1_title: "Deltamas Area Road Upgrade", project1_desc: "Basecourse and hotmix asphalt works",
-    project2_title: "Cikarang Industrial Road", project2_desc: "Limestone supply & compaction",
-    project3_title: "Bekasi Road Maintenance", project3_desc: "Patching and AC-WC overlay",
+    blog_title: "Articles & News",
+    blog_subtitle: "Information and tips about road construction and materials.",
+    nav_blog: "BLOG",
+    btn_view_all_blog: "See More Articles",
+    project1_title: "Quality Construction Sand", project1_desc: "Clean & measured sand for concrete, plaster, SNI casting",
+    project2_title: "Premium Grade Limestone", project2_desc: "Premium grade white limestone, maximum bearing capacity",
+    project3_title: "Natural Split Stone (River Stone)", project3_desc: "River stone for foundations, retaining walls, water channels",
+    project4_title: "Basecourse A & B - Foundation Layer", project4_desc: "Top (A) and bottom (B) foundation layers as per specifications",
+    project5_title: "Crushed Stone Various Sizes", project5_desc: "Crushed stone 1/2\", 2/3\" for concrete & asphalt",
+    project6_title: "Complete Material Solution", project6_desc: "Quality natural materials with fast delivery",
     btn_view_all: "View All",
     cta_title: "Ready to Build Your Project?", cta_subtitle: "Consult your road foundation and material needs with our expert team.", cta_btn: "Chat WhatsApp Now",
     footer_about_title: "CV. MAISAN BINTANG MUDA", footer_about_text: "Trusted road foundation contractor and material supplier in Bekasi & Greater Jakarta.",
     footer_services_title: "Services", footer_contact_title: "Contact", footer_address_title: "Office Address",
-    footer_copyright: "© 2024 CV. Maisan Bintang Muda. All rights reserved."
+    footer_copyright: "© 2024 CV. Maisan Bintang Muda. All rights reserved.",
+    profile_back: "Back to Website", profile_title: "Company Profile",
+    profile_greeting_title: "Director's Greeting", profile_greeting: "Assalamu'alaikum Wr. Wb.",
+    profile_greeting_text1: "With gratitude, we present CV. Maisan Bintang Muda as a construction partner that prioritizes quality, integrity, and timeliness. We believe that a solid road foundation is the foundation for the nation's economic progress.",
+    profile_greeting_text2: "With more than 10 years of experience in the Bekasi, Cikarang, and Karawang areas, we are ready to provide the best solutions for road foundation work and material procurement - from hot mix asphalt, limestone, to basecourse A and B according to technical specifications.",
+    profile_signature_respect: "Respectfully yours,", profile_director: "General Manager",
+    profile_vm_title: "Vision & Mission", profile_vision_title: "VISION",
+    profile_vision_text: "To be the leading road foundation contractor and material supplier in Indonesia that prioritizes quality, safety, and sustainability.",
+    profile_mission_title: "MISSION",
+    profile_mission_point1: "Provide quality materials according to SNI standards at competitive prices",
+    profile_mission_point2: "Complete projects on time with HSE standards",
+    profile_mission_point3: "Build long-term partnerships based on trust",
+    profile_mission_point4: "Develop human resources and modern construction technology",
+    profile_legal_title: "Company Legality",
+    profile_legal_doc: "Document", profile_legal_no: "Number", profile_legal_note: "Information",
+    profile_legal_1_doc: "Deed of Establishment", profile_legal_1_note: "Registered Notary",
+    profile_legal_2_doc: "NIB", profile_legal_2_note: "OSS RBA",
+    profile_legal_3_doc: "NPWP", profile_legal_3_note: "Registered",
+    profile_legal_4_doc: "Business Entity Certificate", profile_legal_4_note: "Construction Services",
+    profile_services_title: "Our Services",
+    profile_service1_title: "1. Road Foundation", profile_service1_desc: "Land preparation, excavation, selective embankment, and road structure formation according to design elevation.",
+    profile_service2_title: "2. Limestone & Basecourse", profile_service2_desc: "Procurement of Limestone, Basecourse A, and Basecourse B materials for road foundation layers with maximum bearing capacity.",
+    profile_service3_title: "3. Sand & Stone Dust", profile_service3_desc: "Providing various types of sand (Cast Sand, Masonry Sand, etc.) and Stone Dust for concrete and asphalt needs (third parties).",
+    profile_service4_title: "4. River Stone / Split Stone", profile_service4_desc: "Quality natural stone material for building foundation construction, retaining walls, and water channels.",
+    profile_service5_title: "5. Crushed Stone", profile_service5_desc: "Provision of crushed/split stone in various sizes (1/2, 2/3, etc.) for concrete casting needs.",
+    profile_experience_title: "Project Experience",
+    profile_exp_no: "No", profile_exp_name: "Work Name", profile_exp_location: "Location", profile_exp_year: "Year", profile_exp_client: "Client",
+    profile_exp_1_name: "Road Improvement Industrial Zone", profile_exp_1_location: "Deltamas, Cikarang", profile_exp_1_year: "2023", profile_exp_1_client: "Private",
+    profile_exp_2_name: "Basecourse A &amp; B Supply", profile_exp_2_location: "Cikarang Pusat", profile_exp_2_year: "2023", profile_exp_2_client: "Main Contractor",
+    profile_exp_3_name: "Split Stone &amp; Foundation Sand Supply", profile_exp_3_location: "Bekasi", profile_exp_3_year: "2022", profile_exp_3_client: "Developer",
+    profile_exp_4_name: "Compaction &amp; Limestone Access Road", profile_exp_4_location: "Karawang", profile_exp_4_year: "2022", profile_exp_4_client: "Industrial",
+    profile_exp_5_name: "Zone Road Patching", profile_exp_5_location: "MM2100", profile_exp_5_year: "2021", profile_exp_5_client: "Estate",
+    profile_exp_6_name: "Split Stone &amp; Concrete Stone Dust Supply", profile_exp_6_location: "Cibitung", profile_exp_6_year: "2021", profile_exp_6_client: "Private",
+    profile_contact_title: "Contact Us",
+    profile_contact_address: "Jl. Raya Tegal Danas - Deltamas No.26, Kp. Kandang Gereng RT01/RW04 Ds. Hegarmukti, Cikarang Pusat, Bekasi 17530",
+    profile_contact_info: "Phone: 0813-1157-8023 | WA: 0822-1385-3865<br>Email: maisan.bintangmuda@gmail.com",
+    blog_s1_title: "Importance of Soil Compaction in Road Foundations",
+    blog_s1_desc: "Proper soil compaction is the key to longevity in road infrastructure...",
+    blog_s1_date: "Apr 15, 2024",
+    blog_s2_title: "Why is SNI Sand Crucial for Concrete?",
+    blog_s2_desc: "Silt content in sand greatly affects concrete strength over time...",
+    blog_s2_date: "Apr 08, 2024",
+    blog_s3_title: "Effective Pothole Repair Techniques",
+    blog_s3_desc: "Patching and resurfacing methods must follow technical standards...",
+    blog_s3_date: "Apr 01, 2024",
+    blog_read_more: "Read More",
+    profile_contact_btn: "Contact via WhatsApp",
+    gallery_title: "Project Gallery - MBM", gallery_back: "Back", gallery_admin_login: "Admin Login",
+    gallery_dragdrop_title: "Drag & Drop Thousands of Photos Here",
+    gallery_dragdrop_hint: "or click to select files • Saved automatically in browser (IndexedDB)",
+    gallery_search_placeholder: "Search photos...", gallery_delete_all: "Delete All",
+    gallery_no_photos: "No photos yet",
+    gallery_empty_text: "Upload your project photos, the system can store thousands of photos locally.",
+    gallery_login_title: "Login Admin MBM", gallery_login_text: "Enter password to enable upload and photo management.",
+    gallery_password_placeholder: "Admin password", gallery_login_btn: "Login", gallery_cancel_btn: "Cancel",
+    gallery_upload_hint_admin: "Admin mode active. You can upload project photos.",
+    gallery_admin_logout: "Logout Admin",
+    gallery_admin_required: "Only admins can upload images.",
+    gallery_delete_confirm: "Delete this photo?",
+    gallery_delete_admin_required: "Only admins can delete photos.",
+    gallery_delete_all_admin_required: "Only admins can delete all photos.",
+    gallery_delete_all_confirm: "Delete ALL photos? This action cannot be undone.",
+    gallery_login_success: "Admin mode active. Image upload and management enabled.",
+    gallery_login_error: "Wrong password. Please try again.",
+    gallery_login_browser_error: "Admin login cannot be processed in this browser."
   }
 };
 
-function setLang(lang){
-  document.querySelectorAll('[data-i18n]').forEach(el=>{
-    const key = el.getAttribute('data-i18n');
-    if(translations[lang] && translations[lang][key]){
-      el.textContent = translations[lang][key];
+function setLang(lang) {
+    const selectedLang = lang === 'en' ? 'en' : 'id';
+    
+    // Update Static Elements
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[selectedLang] && translations[selectedLang][key]) {
+            if (key === 'profile_contact_info') {
+                el.innerHTML = translations[selectedLang][key];
+            } else {
+                el.textContent = translations[selectedLang][key];
+            }
+        }
+    });
+
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (translations[selectedLang] && translations[selectedLang][key]) {
+            el.placeholder = translations[selectedLang][key];
+        }
+    });
+
+    renderLegalTable(selectedLang);
+    renderProjectTable(selectedLang);
+
+    // Update Portfolio Cards Text (No Blinking)
+    const portGrid = document.getElementById('portfolioGrid');
+    if (portGrid) {
+        const cards = portGrid.querySelectorAll('.project-card');
+        cards.forEach((card, i) => {
+            const p = projectsCache?.projects ? projectsCache.projects[i] : null;
+            const h4 = card.querySelector('h4'), desc = card.querySelector('p'), metas = card.querySelectorAll('.project-meta span');
+            if (p) {
+                if (h4) h4.textContent = selectedLang === 'en' ? p.title_en : p.title_id;
+                if (desc) desc.textContent = selectedLang === 'en' ? p.description_en : p.description_id;
+                if (metas[0]) metas[0].textContent = selectedLang === 'en' ? p.meta1_en : p.meta1_id;
+            } else if (portfolioProjects[i]) {
+                const dp = portfolioProjects[i];
+                if (h4) h4.textContent = selectedLang === 'en' ? dp.name_en : dp.name_id;
+                if (desc) desc.textContent = (selectedLang === 'en' ? dp.location_en : dp.location_id) + ' - ' + dp.year;
+            }
+        });
     }
-  });
-  document.getElementById('lang-id').classList.toggle('active', lang==='id');
-  document.getElementById('lang-en').classList.toggle('active', lang==='en');
-  document.documentElement.lang = lang;
+
+    // Update Blog Cards Text (No Blinking)
+    const blogGrid = document.getElementById('blogGrid');
+    if (blogGrid && blogCache) {
+        blogGrid.querySelectorAll('.project-card').forEach((card) => {
+            const id = card.getAttribute('data-blog-id');
+            if (!id || id.startsWith('sample')) return;
+            const post = blogCache.find(b => b.created == id);
+            if (!post) return;
+            const h4 = card.querySelector('h4'), p = card.querySelector('p'), metas = card.querySelectorAll('.project-meta span');
+            if (h4) h4.textContent = post.title;
+            if (p) p.textContent = post.content.replace(/<[^>]*>?/gm, '').substring(0, 150);
+            if (metas[0]) metas[0].textContent = new Date(post.created).toLocaleDateString(selectedLang === 'id' ? 'id-ID' : 'en-US');
+        });
+    }
+
+    document.getElementById('lang-id').classList.toggle('active', selectedLang === 'id');
+    document.getElementById('lang-en').classList.toggle('active', selectedLang === 'en');
+    document.documentElement.lang = selectedLang;
+    setSafeStorageItem('mbmLang', selectedLang);
 }
+
+async function loadDynamicContent() {
+  try {
+    const sections = ['hero', 'about', 'services'];
+    for (const sec of sections) {
+      const res = await fetch(`/.netlify/functions/gallery?section=${sec}`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        const latest = data.sort((a,b) => b.created - a.created)[0];
+        if (sec === 'hero') {
+          document.querySelector('.hero').style.backgroundImage = `url(data:${latest.type};base64,${latest.data})`;
+          if(latest.description) document.querySelector('.hero h1').textContent = latest.description;
+        } else if (sec === 'about') {
+          document.querySelector('.about-image img').src = `data:${latest.type};base64,${latest.latest.data || latest.data}`;
+        }
+      }
+    }
+  } catch (e) { console.log("Konten dinamis belum tersedia"); }
+}
+
+function renderLegalTable(lang){
+  const tbody = document.getElementById('legalTableBody');
+  if(!tbody) return;
+  for(let i=1; i<=4; i++){
+    const docKey = `profile_legal_${i}_doc`;
+    const noteKey = `profile_legal_${i}_note`;
+    const doc = translations[lang] && translations[lang][docKey] ? translations[lang][docKey] : '';
+    const note = translations[lang] && translations[lang][noteKey] ? translations[lang][noteKey] : '';
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${doc}</td><td>-</td><td>${note}</td>`;
+    tbody.appendChild(row);
+  }
+}
+
+const portfolioProjects = [
+  { id: 1, name_id: "Peningkatan Jalan Kawasan Industri", name_en: "Road Improvement Industrial Zone", location_id: "Deltamas, Cikarang", location_en: "Deltamas, Cikarang", year: "2023", tag: "Jalan" },
+  { id: 2, name_id: "Supply Basecourse A &amp; B", name_en: "Basecourse A &amp; B Supply", location_id: "Cikarang Pusat", location_en: "Cikarang Pusat", year: "2023", tag: "Basecourse" },
+  { id: 3, name_id: "Supply Batu Belah &amp; Pasir Pondasi", name_en: "Split Stone &amp; Foundation Sand Supply", location_id: "Bekasi", location_en: "Bekasi", year: "2022", tag: "Batu Belah" },
+  { id: 4, name_id: "Pemadatan &amp; Limestone Jalan Akses", name_en: "Compaction &amp; Limestone Access Road", location_id: "Karawang", location_en: "Karawang", year: "2022", tag: "Limestone" },
+  { id: 5, name_id: "Patching Jalan Kawasan", name_en: "Zone Road Patching", location_id: "MM2100", location_en: "MM2100", year: "2021", tag: "Patching" },
+  { id: 6, name_id: "Supply Split &amp; Abu Batu Cor", name_en: "Split Stone &amp; Concrete Stone Dust Supply", location_id: "Cibitung", location_en: "Cibitung", year: "2021", tag: "Supplier" }
+];
+
+function renderPortfolio(){
+    const grid = document.getElementById('portfolioGrid');
+    if(!grid || (projectsCache && projectsCache.projects)) return;
+    const lang = document.documentElement.lang === 'en' ? 'en' : 'id';
+    grid.innerHTML = portfolioProjects.map(proj => {
+        const name = lang === 'en' ? proj.name_en : proj.name_id;
+        const loc = lang === 'en' ? proj.location_en : proj.location_id;
+        return `
+            <div class="project-card">
+                <div class="project-img">
+                    <img src="img/project${proj.id}-${proj.tag.toLowerCase().replace(' ', '')}.jpg" alt="${name}" loading="lazy" onerror="this.src='img/placeholder.jpg'">
+                </div>
+                <div class="project-content">
+                    <h4>${name}</h4>
+                    <p>${loc} - ${proj.year}</p>
+                    <div class="project-meta"><span>Tahun: ${proj.year}</span><span>Selesai</span></div>
+                </div>
+            </div>`;
+    }).join('');
+}
+
+function renderProjectTable(lang){
+  const tbody = document.getElementById('projectTableBody');
+  if(!tbody) return;
+  tbody.innerHTML = '';
+  for(let i=1; i<=6; i++){
+    const nameKey = `profile_exp_${i}_name`;
+    const locKey = `profile_exp_${i}_location`;
+    const yearKey = `profile_exp_${i}_year`;
+    const clientKey = `profile_exp_${i}_client`;
+    const name = translations[lang] && translations[lang][nameKey] ? translations[lang][nameKey] : '';
+    const location = translations[lang] && translations[lang][locKey] ? translations[lang][locKey] : '';
+    const year = translations[lang] && translations[lang][yearKey] ? translations[lang][yearKey] : '';
+    const client = translations[lang] && translations[lang][clientKey] ? translations[lang][clientKey] : '';
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${i}</td><td>${name}</td><td>${location}</td><td>${year}</td><td>${client}</td>`;
+    tbody.appendChild(row);
+  }
+}
+
 document.getElementById('lang-id').onclick = ()=>setLang('id');
 document.getElementById('lang-en').onclick = ()=>setLang('en');
 
 // Mobile menu
 document.getElementById('hamburger').onclick = ()=>document.getElementById('navMenu').classList.toggle('active');
-document.querySelectorAll('.nav-menu a').forEach(a=>{
-  a.addEventListener('click', e=>{
-    e.preventDefault();
-    const target = document.querySelector(a.getAttribute('href'));
-    if(target) target.scrollIntoView({behavior:'smooth'});
-    document.getElementById('navMenu').classList.remove('active');
-  });
-});
 
 // Profile & Gallery toggle
 const mainSite = document.getElementById('mainSite');
@@ -1035,23 +1224,83 @@ function closeGallery(){
 }
 
 // Gallery IndexedDB
-let db;
-const DB_NAME='MBM_Gallery_v1', STORE='photos';
 function initDB(){
-  const req = indexedDB.open(DB_NAME,1);
+  if(!window.indexedDB){
+    console.warn('IndexedDB tidak tersedia di browser ini.');
+    if(storageInfo) storageInfo.textContent = 'Storage browser tidak tersedia';
+    return;
+  }
+
+  let req;
+  try {
+    req = indexedDB.open(DB_NAME,1);
+  } catch (error) {
+    console.error('Gagal membuka IndexedDB:', error);
+    if(storageInfo) storageInfo.textContent = 'Storage browser gagal diakses';
+    return;
+  }
+
   req.onupgradeneeded = e=>{
     db = e.target.result;
     if(!db.objectStoreNames.contains(STORE)){
       db.createObjectStore(STORE,{keyPath:'id',autoIncrement:true});
     }
   };
-  req.onsuccess = e=>{ db=e.target.result; loadSampleImages(); renderGallery(); };
-  req.onerror = ()=>console.error('DB error');
+  req.onsuccess = e=>{ db=e.target.result; loadSampleImages(); renderPortfolio(); };
+  req.onerror = ()=> {
+    console.error('DB error');
+    if(storageInfo) storageInfo.textContent = 'Storage browser tidak bisa dipakai';
+  };
+}
+
+async function uploadToCloud(photo) {
+  if (!isAdmin) return;
+  const authHash = localStorage.getItem('mbm_admin_hash');
+  try {
+    // Convert ArrayBuffer ke Base64 agar bisa dikirim via JSON
+    const base64Data = btoa(new Uint8Array(photo.data).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+    await fetch('/.netlify/functions/gallery', {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'x-admin-hash': authHash
+      },
+      body: JSON.stringify({
+        name: photo.name,
+        type: photo.type,
+        description: photo.description,
+        data: base64Data,
+        created: photo.created
+      })
+    });
+  } catch (e) { console.warn('Cloud sync gagal (mungkin belum dideploy ke Netlify)'); }
+}
+
+async function fetchCloudPhotos() {
+  if (!isAdmin || !db) return;
+  try {
+    const res = await fetch('/.netlify/functions/gallery');
+    if (!res.ok) return;
+    const cloudPhotos = await res.json();
+    const tx = db.transaction(STORE, 'readwrite');
+    const store = tx.objectStore(STORE);
+    cloudPhotos.forEach(p => {
+      const bin = atob(p.data);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      store.put({ ...p, data: bytes.buffer });
+    });
+    tx.oncomplete = () => renderGallery(searchInput.value);
+  } catch (e) {}
 }
 
 // Load sample images from img folder
 async function loadSampleImages(){
   if(!db) return;
+  if(window.location.protocol === 'file:'){
+    console.warn('Sample gallery preload dilewati karena halaman dibuka dari file lokal.');
+    return;
+  }
   const images = [
     'img/project1-jalan.jpg',
     'img/project2-limestone.jpg',
@@ -1105,25 +1354,25 @@ const adminPasswordInput = document.getElementById('adminPasswordInput');
 const adminSubmitBtn = document.getElementById('adminSubmitBtn');
 const adminCancelBtn = document.getElementById('adminCancelBtn');
 const adminModalClose = document.getElementById('adminModalClose');
-let isAdmin = localStorage.getItem('mbmGalleryAdmin') === 'true';
-const adminPasswordHash = 'ce8a6a7b9268ecbd6008e11dc1d227ebd425568c1c02976c85ce7941d7916b71';
+let isAdmin = getSafeStorageItem('mbmGalleryAdmin') === 'true';
 
 function setAdminSession(value){
   isAdmin = value;
-  localStorage.setItem('mbmGalleryAdmin', value ? 'true' : 'false');
+  setSafeStorageItem('mbmGalleryAdmin', value ? 'true' : 'false');
 }
 
 function updateGalleryAuth(){
   if(isAdmin){
     dropZone.style.display='block';
     fileInput.disabled=false;
-    uploadHint.textContent='Mode admin aktif. Anda dapat mengupload foto proyek.';
-    adminLoginBtn.textContent='Logout Admin';
+    uploadHint.innerHTML=translations[document.documentElement.lang==='en'?'en':'id']['gallery_upload_hint_admin']||'Mode admin aktif. Anda dapat mengupload foto proyek.';
+    adminLoginBtn.textContent=translations[document.documentElement.lang==='en'?'en':'id']['gallery_admin_logout']||'Logout Admin';
+    fetchCloudPhotos(); // Ambil data dari cloud saat admin login
   } else {
     dropZone.style.display='none';
     fileInput.disabled=true;
-    uploadHint.textContent='Hanya admin yang dapat upload foto. Klik Login Admin untuk akses.';
-    adminLoginBtn.textContent='Login Admin';
+    uploadHint.innerHTML=translations[document.documentElement.lang==='en'?'en':'id']['gallery_upload_hint']||'Hanya admin yang dapat upload foto. Klik Login Admin untuk akses.';
+    adminLoginBtn.textContent=translations[document.documentElement.lang==='en'?'en':'id']['gallery_admin_login']||'Login Admin';
   }
 }
 
@@ -1139,6 +1388,9 @@ function closeAdminModal(){
 }
 
 async function hashText(value){
+  if(!window.crypto || !window.crypto.subtle){
+    throw new Error('Browser tidak mendukung secure hashing pada halaman ini.');
+  }
   const encoder = new TextEncoder();
   const data = encoder.encode(value);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
@@ -1148,15 +1400,30 @@ async function hashText(value){
 async function confirmAdminLogin(){
   const value = adminPasswordInput.value.trim();
   if(!value) return;
-  if(await hashText(value) === adminPasswordHash){
-    setAdminSession(true);
-    updateGalleryAuth();
-    closeAdminModal();
-    alert('Mode admin aktif. Upload dan pengelolaan gambar diizinkan.');
-  } else {
-    alert('Kata sandi salah. Silakan coba lagi.');
-    adminPasswordInput.value = '';
-    adminPasswordInput.focus();
+  try{
+    const hashed = await hashText(value);
+    // Verifikasi ke server, bukan secara lokal
+    const res = await fetch('/.netlify/functions/gallery?action=auth', {
+      headers: { 'x-admin-hash': hashed }
+    });
+
+    if(res.ok){
+      localStorage.setItem('mbm_admin_hash', hashed);
+      setAdminSession(true);
+      updateGalleryAuth();
+      closeAdminModal();
+      const lang = document.documentElement.lang === 'en' ? 'en' : 'id';
+      alert(translations[lang]['gallery_login_success']);
+    } else {
+      const lang = document.documentElement.lang === 'en' ? 'en' : 'id';
+      alert(translations[lang]['gallery_login_error']);
+      adminPasswordInput.value = '';
+      adminPasswordInput.focus();
+    }
+  } catch(error){
+    console.error('Admin login error:', error);
+    const lang = document.documentElement.lang === 'en' ? 'en' : 'id';
+    alert(translations[lang]['gallery_login_browser_error']);
   }
 }
 
@@ -1175,6 +1442,60 @@ adminModalClose.onclick = closeAdminModal;
 adminPasswordInput.addEventListener('keydown', e=>{ if(e.key === 'Enter') confirmAdminLogin(); });
 adminModal.addEventListener('click', e=>{ if(e.target === adminModal) closeAdminModal(); });
 
+// Project Description Modal
+const projectDescModal = document.getElementById('projectDescModal');
+const projectNameInput = document.getElementById('projectNameInput');
+const projectDescInput = document.getElementById('projectDescInput');
+const projectDescSubmitBtn = document.getElementById('projectDescSubmitBtn');
+const projectDescCancelBtn = document.getElementById('projectDescCancelBtn');
+const projectDescModalClose = document.getElementById('projectDescModalClose');
+let pendingPhotoData = null;
+
+function openProjectDescModal(photoData){
+  pendingPhotoData = photoData;
+  projectNameInput.value = '';
+  projectDescInput.value = '';
+  projectDescModal.classList.add('active');
+  projectNameInput.focus();
+}
+
+function closeProjectDescModal(){
+  projectDescModal.classList.remove('active');
+  projectNameInput.value = '';
+  projectDescInput.value = '';
+  pendingPhotoData = null;
+}
+
+function confirmProjectDesc(){
+  const projName = projectNameInput.value.trim() || 'Untitled';
+  const projDesc = projectDescInput.value.trim() || '';
+  if(pendingPhotoData && db){
+    const tx = db.transaction(STORE,'readwrite');
+    const store = tx.objectStore(STORE);
+    const newPhoto = {
+      name: projName,
+      type: pendingPhotoData.type,
+      size: pendingPhotoData.size,
+      data: pendingPhotoData.data,
+      description: projDesc,
+      created: Date.now()
+    };
+    store.add(newPhoto);
+    uploadToCloud(newPhoto); // Kirim ke Netlify
+    tx.oncomplete = ()=>{
+      renderGallery(searchInput.value);
+      renderPortfolio();
+      closeProjectDescModal();
+    };
+  }
+}
+
+projectDescSubmitBtn.onclick = confirmProjectDesc;
+projectDescCancelBtn.onclick = closeProjectDescModal;
+projectDescModalClose.onclick = closeProjectDescModal;
+projectNameInput.addEventListener('keydown', e=>{ if(e.key === 'Enter') confirmProjectDesc(); });
+projectDescModal.addEventListener('click', e=>{ if(e.target === projectDescModal) closeProjectDescModal(); });
+
 dropZone.onclick = ()=>{ if(isAdmin) fileInput.click(); };
 dropZone.ondragover = e=>{ e.preventDefault(); if(isAdmin) dropZone.classList.add('dragover'); };
 dropZone.ondragleave = ()=>{ if(isAdmin) dropZone.classList.remove('dragover'); };
@@ -1182,10 +1503,32 @@ dropZone.ondrop = e=>{ e.preventDefault(); if(isAdmin){ dropZone.classList.remov
 fileInput.onchange = e=>{ if(isAdmin) handleFiles(e.target.files); };
 
 function handleFiles(files){
-  if(!isAdmin){ alert('Hanya admin yang dapat mengupload gambar.'); return; }
+  if(!isAdmin){ 
+    const lang = document.documentElement.lang === 'en' ? 'en' : 'id';
+    alert(translations[lang]['gallery_admin_required']);
+    return; 
+  }
   if(!files.length || !db) return;
   const arr = Array.from(files).filter(f=>f.type.startsWith('image/'));
   if(!arr.length) return;
+  
+  // If only one file, ask for description
+  if(arr.length === 1){
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      openProjectDescModal({
+        type: arr[0].type,
+        size: arr[0].size,
+        data: reader.result,
+        originalName: arr[0].name
+      });
+    };
+    reader.readAsArrayBuffer(arr[0]);
+    fileInput.value = '';
+    return;
+  }
+  
+  // Multiple files: upload directly with file names
   progressWrap.style.display='block';
   let done=0;
   const tx = db.transaction(STORE,'readwrite');
@@ -1193,14 +1536,16 @@ function handleFiles(files){
   arr.forEach(file=>{
     const reader = new FileReader();
     reader.onload = ()=>{
-      store.add({name:file.name,type:file.type,size:file.size,data:reader.result,created:Date.now()});
+      const p = {name:file.name,type:file.type,size:file.size,data:reader.result,description:'',created:Date.now()};
+      store.add(p);
+      uploadToCloud(p); // Kirim ke Netlify
     };
     reader.readAsArrayBuffer(file);
     done++;
     progressFill.style.width = Math.round((done/arr.length)*100)+'%';
   });
   tx.oncomplete = ()=>{
-    setTimeout(()=>{progressWrap.style.display='none';progressFill.style.width='0%';renderGallery()},400);
+    setTimeout(()=>{progressWrap.style.display='none';progressFill.style.width='0%';renderGallery();renderPortfolioDebounced()},400);
     fileInput.value='';
   };
 }
@@ -1223,30 +1568,225 @@ function renderGallery(filter=''){
         const url = URL.createObjectURL(new Blob([photo.data],{type:photo.type}));
         const card = document.createElement('div');
         card.className='photo-card';
-        card.innerHTML=`<img src="${url}" alt="${photo.name}" loading="lazy"><div class="photo-overlay"><div class="photo-name">${photo.name}</div></div><button class="photo-delete">×</button>`;
-        card.querySelector('img').onclick = ()=>openLightbox(url);
-        card.querySelector('.photo-delete').onclick = e=>{e.stopPropagation(); deletePhoto(photo.id,url)};
+        card.innerHTML=`
+          <img src="${url}" alt="${photo.name}" loading="lazy" style="cursor:pointer;" onclick="openLightbox('${url}')">
+          <div class="photo-overlay">
+            <div>
+              <div style="font-weight:600;color:#fff;margin-bottom:4px;">${photo.name}</div>
+              <div style="font-size:14px;color:#e5e7eb;line-height:1.4;">${photo.description || 'Tidak ada keterangan'}</div>
+            </div>
+            <button class="photo-delete" onclick="deletePhoto(${photo.id},'${url}')" style="margin-top:8px;align-self:flex-start;">&times;</button>
+          </div>
+        `;
         galleryGrid.appendChild(card);
       });
     }
-    storageInfo.textContent = `${photos.length} Foto • ${(totalSize/1024/1024).toFixed(1)} MB`;
+    storageInfo.textContent = `${photos.length} Foto - ${(totalSize/1024/1024).toFixed(1)} MB`;
   };
 }
 
 function deletePhoto(id,url){
-  if(!isAdmin){ alert('Hanya admin yang dapat menghapus foto.'); return; }
-  if(!confirm('Hapus foto ini?')) return;
+  if(!isAdmin){ 
+    const lang = document.documentElement.lang === 'en' ? 'en' : 'id';
+    alert(translations[lang]['gallery_delete_admin_required']);
+    return; 
+  }
+  const lang = document.documentElement.lang === 'en' ? 'en' : 'id';
+  if(!confirm(translations[lang]['gallery_delete_confirm'])) return;
   db.transaction(STORE,'readwrite').objectStore(STORE).delete(id).onsuccess=()=>{
+    const authHash = localStorage.getItem('mbm_admin_hash');
+    fetch('/.netlify/functions/gallery?id=' + id, { 
+      method: 'DELETE',
+      headers: { 'x-admin-hash': authHash }
+    }).catch(()=>{});
     URL.revokeObjectURL(url);
+    delete portfolioPhotoCache[id];
     renderGallery(searchInput.value);
+    renderPortfolioDebounced();
   };
 }
 document.getElementById('deleteAll').onclick = ()=>{
-  if(!isAdmin){ alert('Hanya admin yang dapat menghapus semua foto.'); return; }
-  if(!confirm('Hapus SEMUA foto? Tindakan tidak dapat dibatalkan.')) return;
-  db.transaction(STORE,'readwrite').objectStore(STORE).clear().onsuccess=()=>renderGallery(searchInput.value);
+  if(!isAdmin){ 
+    const lang = document.documentElement.lang === 'en' ? 'en' : 'id';
+    alert(translations[lang]['gallery_delete_all_admin_required']);
+    return; 
+  }
+  const lang = document.documentElement.lang === 'en' ? 'en' : 'id';
+  if(!confirm(translations[lang]['gallery_delete_all_confirm'])) return;
+  db.transaction(STORE,'readwrite').objectStore(STORE).clear().onsuccess=()=>{
+    portfolioPhotoCache = {};
+    renderGallery(searchInput.value);
+    renderPortfolioDebounced();
+  };
 };
 searchInput.oninput = e=>renderGallery(e.target.value);
+
+  // BLOG FUNCTIONS
+  let blogCache = null;
+
+  async function renderBlog(limit = null, targetGridId = 'blogGrid') {
+    const grid = document.getElementById(targetGridId);
+    if(!grid) return;
+    const lang = document.documentElement.lang === 'en' ? 'en' : 'id';
+
+    if (!blogCache) {
+      try {
+        const res = await fetch('/.netlify/functions/gallery?section=blog');
+        if (res.ok) {
+          blogCache = await res.json();
+          blogCache.sort((a,b) => b.created - a.created);
+        }
+      } catch (e) {
+        console.warn("Gagal memuat blog dari cloud, menggunakan data lokal.");
+      }
+    }
+
+    // Fallback data jika cloud kosong atau gagal (agar card tetap muncul)
+    const fallbackData = [
+      { created: 1713139200000, title: translations[lang].blog_s1_title, content: translations[lang].blog_s1_desc, type: "image/jpeg", data: "", isSample: true },
+      { created: 1712534400000, title: translations[lang].blog_s2_title, content: translations[lang].blog_s2_desc, type: "image/jpeg", data: "", isSample: true },
+      { created: 1711929600000, title: translations[lang].blog_s3_title, content: translations[lang].blog_s3_desc, type: "image/jpeg", data: "", isSample: true }
+    ];
+
+    const dataToDisplay = (blogCache && blogCache.length > 0) ? blogCache : fallbackData;
+
+    // Sembunyikan/Tampilkan tombol "Lihat Artikel Lainnya" berdasarkan jumlah total artikel
+    if (targetGridId === 'blogGrid') {
+      const blogFooter = document.querySelector('#blog .projects-footer');
+      if (blogFooter) {
+        blogFooter.style.display = dataToDisplay.length > 3 ? 'block' : 'none';
+      }
+    }
+
+    const displayPosts = limit ? dataToDisplay.slice(0, limit) : dataToDisplay;
+
+      grid.innerHTML = displayPosts.map(post => {
+        const date = post.isSample ? (lang === 'id' ? "15 Apr 2024" : "Apr 15, 2024") : new Date(post.created).toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-US');
+        const preview = post.content.replace(/<[^>]*>?/gm, '').substring(0, 120) + '...';
+        const imgSrc = post.data ? `data:${post.type};base64,${post.data}` : 'img/about.jpg';
+        
+        return `
+          <div class="project-card" data-blog-id="${post.isSample ? 'sample-'+post.created : post.created}">
+            <div class="project-img">
+              <img src="${imgSrc}" alt="${post.title}" loading="lazy" style="cursor: pointer;" 
+                onclick="${post.isSample ? '' : `viewBlogPost('${post.created}')`}" 
+                onerror="this.src='img/about.jpg'">
+            </div>
+            <div class="project-content">
+              <h4>${post.title}</h4>
+              <p>${preview}</p>
+              <div class="project-meta">
+                <span>${date}</span>
+                <span onclick="${post.isSample ? '' : `viewBlogPost('${post.created}')`}" style="color: var(--blue); font-weight: 600; cursor: pointer;">
+                  ${translations[lang].blog_read_more || 'Baca Selengkapnya'}
+                </span>
+              </div>
+              ${isAdmin && !post.isSample ? `<button class="btn-delete" onclick="deleteBlog('${post.created}')" style="margin-top:15px; width:fit-content; padding: 4px 10px; font-size:11px; background:#ef4444;">Hapus Artikel</button>` : ''}
+            </div>
+          </div>
+        `;
+    }).join('');
+  }
+
+  // Navigation for Blog Archive
+  window.openBlogArchive = () => {
+    document.getElementById('mainSite').style.display = 'none';
+    document.getElementById('blogArchivePage').style.display = 'block';
+    window.scrollTo(0,0);
+    renderBlog(null, 'blogArchiveGrid'); // Render semua tanpa limit
+  };
+
+  window.closeBlogArchive = () => {
+    document.getElementById('blogArchivePage').style.display = 'none';
+    document.getElementById('mainSite').style.display = 'block';
+    window.scrollTo(0, 0);
+  };
+
+  window.viewBlogPost = async (id) => {
+    try {
+      const res = await fetch('/.netlify/functions/gallery?section=blog');
+      const posts = await res.json();
+      const post = posts.find(p => p.created == id);
+      if (!post) return;
+      
+      document.getElementById('viewBlogImg').src = `data:${post.type};base64,${post.data}`;
+      document.getElementById('viewBlogTitle').textContent = post.title;
+      document.getElementById('viewBlogMeta').textContent = `Diposting pada ${new Date(post.created).toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'})}`;
+      document.getElementById('viewBlogContent').innerHTML = post.content.replace(/\n/g, '<br>');
+      document.getElementById('blogViewModal').classList.add('active');
+    } catch(e) {}
+  };
+
+  window.openBlogAdminModal = () => {
+    document.getElementById('blogTitleInput').value = '';
+    document.getElementById('blogRichEditor').innerHTML = 'Mulai menulis disini...';
+    const draft = JSON.parse(localStorage.getItem('mbm_blog_draft') || 'null');
+    if (draft && confirm("Terdapat draf artikel yang belum tersimpan. Ingin memulihkannya?")) {
+      document.getElementById('blogTitleInput').value = draft.title;
+      document.getElementById('blogRichEditor').innerHTML = draft.content;
+    } else {
+      document.getElementById('blogTitleInput').value = '';
+      document.getElementById('blogRichEditor').innerHTML = 'Mulai menulis disini...';
+    }
+    document.getElementById('blogAdminModal').classList.add('active');
+  };
+
+  window.saveBlogDraft = () => {
+    const title = document.getElementById('blogTitleInput').value;
+    const content = document.getElementById('blogRichEditor').innerHTML;
+    localStorage.setItem('mbm_blog_draft', JSON.stringify({ title, content }));
+  };
+
+  document.getElementById('blogTitleInput').addEventListener('input', window.saveBlogDraft);
+  document.getElementById('blogRichEditor').addEventListener('input', window.saveBlogDraft);
+
+  window.closeBlogAdminModal = () => {
+    document.getElementById('blogAdminModal').classList.remove('active');
+  };
+
+  document.getElementById('blogSubmitBtn').onclick = async () => {
+    const title = document.getElementById('blogTitleInput').value;
+    const content = document.getElementById('blogRichEditor').innerHTML;
+    const file = document.getElementById('blogImageInput').files[0];
+    
+    if(!title || !content || !file) return alert("Mohon lengkapi judul, konten, dan gambar.");
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64Data = btoa(new Uint8Array(reader.result).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+      const authHash = localStorage.getItem('mbm_admin_hash');
+      const res = await fetch('/.netlify/functions/gallery?section=blog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-hash': authHash },
+        body: JSON.stringify({ 
+          title, content, type: file.type, data: base64Data, created: Date.now() 
+        })
+      });
+      if(res.ok) {
+        localStorage.removeItem('mbm_blog_draft');
+        alert('Artikel berhasil diposting!');
+        closeBlogAdminModal();
+        blogCache = null;
+        renderBlog(3);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  window.deleteBlog = async (id) => {
+    if(!confirm("Hapus artikel ini?")) return;
+    const authHash = localStorage.getItem('mbm_admin_hash');
+    await fetch(`/.netlify/functions/gallery?section=blog&id=${id}`, {
+      method: 'DELETE',
+      headers: { 'x-admin-hash': authHash }
+    });
+    blogCache = null;
+    if (document.getElementById('blogArchivePage').style.display === 'block') {
+      renderBlog(null, 'blogArchiveGrid');
+    } else {
+      renderBlog(3);
+    }
+  };
 
 function openLightbox(src){
   document.getElementById('lightboxImg').src=src;
@@ -1258,7 +1798,13 @@ function closeLightbox(){
 document.getElementById('lightbox').onclick = e=>{if(e.target.id==='lightbox') closeLightbox()};
 
 // Init
-setLang('id');
+try {
+  setLang(getSafeStorageItem('mbmLang') === 'en' ? 'en' : 'id');
+  renderBlog(3);
+  loadDynamicContent();
+} catch (error) {
+  setLang('id');
+}
 </script>
 <script>
 // Soft scroll animations
@@ -1298,7 +1844,7 @@ document.addEventListener('DOMContentLoaded', function(){
     }
     lastY = y;
   }, {passive:true});
-  
+
   // Smooth anchor with offset
   document.querySelectorAll('a[href^="#"]').forEach(a => {
     a.addEventListener('click', function(e){
@@ -1322,6 +1868,10 @@ document.addEventListener('DOMContentLoaded', function(){
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  if(typeof window.gsap === 'undefined' || typeof window.ScrollTrigger === 'undefined'){
+    console.warn('GSAP tidak tersedia. Fallback animasi standar tetap digunakan.');
+    return;
+  }
   gsap.registerPlugin(ScrollTrigger);
   
   // Performance: reduce motion for users who prefer
@@ -1329,7 +1879,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if(prefersReduced) return;
   
   // Set initial - GPU only transforms
-  gsap.set(['.hero h1', '.hero p', '.hero .red-line', '.hero-buttons', '.feature-card', '.project-card', '.service-card', '.section-header', '.about-image', '.about-content'], 
+  gsap.set(['.hero h1', '.hero p', '.hero .red-line', '.hero-buttons', '.feature-card', '.project-card', '.service-card', '.section-header', '.about-image', '.about-content'],
     {opacity:0, y:24, force3D:true});
   gsap.set('.navbar', {y:-12, opacity:0, force3D:true});
   
@@ -1359,7 +1909,7 @@ document.addEventListener('DOMContentLoaded', () => {
     onEnter: batch => gsap.to(batch, {opacity:1, y:0, duration:0.65, stagger:0.08, ease:'power1.out', overwrite:true}),
     once: true
   });
-  
+
   // Navbar only - throttled
   let ticking = false;
   const navbar = document.querySelector('.navbar');
@@ -1398,47 +1948,356 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <!-- Copyright & License Protection -->
 <script>
-// Disable right-click context menu
-document.addEventListener('contextmenu', e => {
-  if(e.target.tagName === 'IMG' || e.target.closest('.hero') || e.target.closest('.projects-grid')) {
-    e.preventDefault();
-    return false;
+(function() {
+  // 1. Matikan Klik Kanan secara Global
+  document.addEventListener('contextmenu', e => {
+    // Izinkan klik kanan pada input/textarea agar admin bisa paste password
+    if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+      e.preventDefault();
+      return false;
+    }
+  });
+
+  // 2. Matikan Event Copy, Cut, dan Drag Gambar
+  document.addEventListener('copy', e => {
+    if (!isAdmin) { e.preventDefault(); return false; }
+  });
+  document.addEventListener('cut', e => {
+    if (!isAdmin) { e.preventDefault(); return false; }
+  });
+  document.addEventListener('dragstart', e => {
+    if (e.target.tagName === 'IMG') { e.preventDefault(); return false; }
+  });
+
+  // 3. Blokir Shortcut Keyboard (Visitor Mode)
+  document.addEventListener('keydown', e => {
+    // Selalu blokir F12 dan Ctrl+Shift+I (DevTools)
+    if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key.toUpperCase()))) {
+      e.preventDefault();
+      return false;
+    }
+
+    // Blokir shortcut salin/simpan untuk non-admin
+    if (!isAdmin && e.ctrlKey) {
+      const key = e.key.toUpperCase();
+      // A (Select All), C (Copy), S (Save), U (View Source), P (Print)
+      if (['A', 'C', 'S', 'U', 'P'].includes(key)) {
+        e.preventDefault();
+        return false;
+      }
+    }
+  });
+
+  // Log Notifikasi di Console
+  const logStyle = 'color: #00529C; font-weight: bold;';
+  console.log('%c========================================', logStyle);
+  console.log('%c(c) 2026 CV. MAISAN BINTANG MUDA', logStyle + ' font-size: 14px;');
+  console.log('%cPROTECTED BY COPYRIGHT LAW', 'color: #E30613; font-weight: bold;');
+  console.log('%cUnauthorized copying is strictly prohibited.', 'color: #6b7280;');
+  console.log('%c========================================', logStyle);
+
+  // ========== IMAGE & CONFIGURATION MANAGEMENT SYSTEM ==========
+  
+  // Backup & Undo System
+  const CONFIG_BACKUP_KEY = 'mbm_config_backups';
+  const CONFIG_LOCK_KEY = 'mbm_config_locked';
+  
+  function saveConfigBackup(label) {
+    try {
+      fetch('images.json')
+        .then(r => r.json())
+        .then(data => {
+          const backups = JSON.parse(localStorage.getItem(CONFIG_BACKUP_KEY) || '[]');
+          backups.push({
+            timestamp: Date.now(),
+            label: label || `Backup ${new Date().toLocaleString()}`,
+            data: data
+          });
+          if (backups.length > 10) backups.shift();
+          localStorage.setItem(CONFIG_BACKUP_KEY, JSON.stringify(backups));
+          console.log('Backup disimpan:', label);
+        });
+    } catch (e) {
+      console.error('Backup error:', e);
+    }
   }
-});
 
-// Disable text selection on images and key elements
-document.querySelectorAll('img, .project-card, .service-card, .feature-card').forEach(el => {
-  el.addEventListener('selectstart', e => e.preventDefault());
-  el.style.userSelect = 'none';
-  el.style.webkitUserSelect = 'none';
-});
-
-// Block developer tools shortcuts
-document.addEventListener('keydown', e => {
-  // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
-  if(e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C'))) {
-    e.preventDefault();
-    console.log('%c⚠️ Developer Tools Disabled', 'color: red; font-size: 16px; font-weight: bold;');
-    console.log('%cWebsite ini dilindungi oleh Copyright © 2026 CV. Maisan Bintang Muda', 'color: blue; font-size: 12px;');
-    console.log('%cUnauthorized copying or reproduction is prohibited.', 'color: blue; font-size: 12px;');
-    return false;
+  function restoreConfigBackup(index) {
+    try {
+      const backups = JSON.parse(localStorage.getItem(CONFIG_BACKUP_KEY) || '[]');
+      if (!backups[index]) {
+        alert('Backup tidak ditemukan');
+        return;
+      }
+      alert('Backup #' + (index + 1) + ': ' + backups[index].label + '\n\nUntuk restore, hubungi admin atau download dari console.');
+      console.log('Backup data:', backups[index].data);
+    } catch (e) {
+      console.error('Restore error:', e);
+    }
   }
-});
 
-// Log copyright notice on console
-console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color: #00529C; font-weight: bold;');
-console.log('%c© 2026 CV. MAISAN BINTANG MUDA', 'color: #00529C; font-size: 16px; font-weight: bold;');
-console.log('%cPROTECTED BY COPYRIGHT LAW', 'color: #E30613; font-weight: bold;');
-console.log('%cUnauthorized copying, modification, or commercial use is strictly prohibited.', 'color: #6b7280;');
-console.log('%cSee LICENSE file for full terms.', 'color: #6b7280;');
-console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color: #00529C; font-weight: bold;');
+  function lockConfig() {
+    localStorage.setItem(CONFIG_LOCK_KEY, 'true');
+    alert('✅ Konfigurasi DIKUNCI. Hanya Admin yang bisa edit.');
+  }
+
+  function unlockConfig() {
+    localStorage.removeItem(CONFIG_LOCK_KEY);
+    alert('🔓 Konfigurasi DIBUKA.');
+  }
+
+  function isConfigLocked() {
+    return localStorage.getItem(CONFIG_LOCK_KEY) === 'true';
+  }
+
+  // Load dan render project cards dari images.json - cache to prevent blinking
+  let currentLang = getSafeStorageItem('mbmLang') === 'en' ? 'en' : 'id';
+  let projectsCache = null;
+  
+  async function renderProjects() {
+    try {
+      // Only fetch if not cached
+      if (!projectsCache) {
+        const response = await fetch('images.json');
+        // FIX: Check response.ok sebelum parse JSON
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const data = await response.json();
+        // FIX: Validate struktur data
+        if (!data || typeof data !== 'object' || !Array.isArray(data.projects)) {
+          throw new Error('Invalid data structure: missing projects array');
+        }
+        projectsCache = data;
+      }
+
+      const data = projectsCache;
+      const grid = document.getElementById('portfolioGrid');
+      
+      if (!grid) {
+        console.warn('⚠️ Projects grid tidak ditemukan');
+        return;
+      }
+      
+      if (!data.projects || data.projects.length === 0) {
+        console.warn('⚠️ Data projects kosong, fallback ke renderPortfolio');
+        renderPortfolio();
+        return;
+      }
+      
+      // FIX: Gunakan document.documentElement.lang daripada currentLang variable
+      const lang = document.documentElement.lang === 'en' ? 'en' : 'id';
+      
+      grid.innerHTML = data.projects.map(project => {
+        const title = lang === 'en' ? (project.title_en || project.title_id) : (project.title_id || '');
+        const desc = lang === 'en' ? (project.description_en || project.description_id) : (project.description_id || '');
+        const meta1 = lang === 'en' ? (project.meta1_en || project.meta1_id) : (project.meta1_id || '');
+        const meta2 = project.meta2 || 'Siap Kirim';
+        
+        // Auto-fix path jika gambar ada di root tapi JSON menuliskan img/
+        let imgSrc = project.image || 'img/placeholder.jpg';
+        if (imgSrc.startsWith('img/') && !window.location.host.includes('localhost')) {
+          // Jika di produksi dan gambar tidak ditemukan, coba root
+          // Logika ini dibantu dengan onerror di tag img
+        }
+
+        return `
+          <div class="project-card" data-project-id="${project.id}">
+            <div class="project-img">
+              <img src="${project.image || 'img/placeholder.jpg'}" alt="${project.alt || title}" loading="lazy" onerror="this.src='img/placeholder.jpg'">
+            </div>
+            <div class="project-content">
+              <h4>${title}</h4>
+              <p>${desc}</p>
+              <div class="project-meta">
+                <span>${meta1}</span>
+                <span>${meta2}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      console.log('Projects loaded:', data.projects.length, 'bahasa:', lang);
+    } catch (error) {
+      console.error('❌ Error loading projects:', error.message);
+      console.log('Fallback ke renderPortfolio');
+      renderPortfolio();
+    }
+  }
+
+  // Init projects loader - load once, no blinking
+  function initProjectsLoader() {
+    renderProjects();
+    // Load only once on page load - no auto-refresh to prevent image blinking
+  }
+
+  document.addEventListener('DOMContentLoaded', initProjectsLoader);
+
+  // Hook setLang untuk update display (update text only, no re-render to prevent blinking)
+  const originalSetLang = window.setLang;
+  window.setLang = function(lang) {
+    const elementsToFade = document.querySelectorAll('[data-i18n], #portfolioGrid .project-card h4, #portfolioGrid .project-card p, #portfolioGrid .project-meta span, #blogGrid .project-card h4, #blogGrid .project-meta span, .legal-table, .project-table');
+    
+    gsap.to(elementsToFade, {
+      opacity: 0,
+      y: 3,
+      duration: 0.2,
+      onComplete: () => {
+        originalSetLang(lang);
+        currentLang = lang;
+
+        const portGrid = document.getElementById('portfolioGrid');
+        if (portGrid) {
+          const cards = portGrid.querySelectorAll('.project-card');
+          cards.forEach((card, i) => {
+            const p = projectsCache.projects[i];
+            const h4 = card.querySelector('h4'), desc = card.querySelector('p'), metas = card.querySelectorAll('.project-meta span');
+            if (p) {
+              if (h4) h4.textContent = lang === 'en' ? p.title_en : p.title_id;
+              if (desc) desc.textContent = lang === 'en' ? p.description_en : p.description_id;
+              if (metas[0]) metas[0].textContent = lang === 'en' ? p.meta1_en : p.meta1_id;
+            } else if (portfolioProjects[i]) {
+              // Fallback jika menggunakan data default
+              const dp = portfolioProjects[i];
+              if (h4) h4.textContent = lang === 'en' ? dp.name_en : dp.name_id;
+              if (desc) desc.textContent = (lang === 'en' ? dp.location_en : dp.location_id) + ' - ' + dp.year;
+            }
+          });
+        }
+
+        const bGrid = document.getElementById('blogGrid');
+        if (bGrid && blogCache) {
+          bGrid.querySelectorAll('.project-card').forEach((card) => {
+            const id = card.getAttribute('data-blog-id');
+            const post = blogCache.find(b => b.created == id);
+            if (!post) return;
+            const h4 = card.querySelector('h4'), p = card.querySelector('p'), metas = card.querySelectorAll('.project-meta span');
+            if (h4) h4.textContent = post.title;
+            if (p) p.textContent = post.content.replace(/<[^>]*>?/gm, '').substring(0, 150);
+            if (metas[0]) metas[0].textContent = new Date(post.created).toLocaleDateString(lang === 'id' ? 'id-ID' : 'en-US');
+          });
+        }
+
+        gsap.to(elementsToFade, { opacity: 1, y: 0, duration: 0.3, stagger: 0.002 });
+      }
+    });
+  };
+
+  // Expand Admin Panel untuk ganti foto section lain
+  window.uploadSectionImage = async (section) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+      const file = e.target.files[0];
+      const desc = prompt("Masukkan keterangan/judul baru (opsional):");
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64Data = btoa(new Uint8Array(reader.result).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+        const res = await fetch(`/.netlify/functions/gallery?section=${section}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: file.name, type: file.type, data: base64Data, description: desc, created: Date.now(), id: 'main' })
+        });
+        if(res.ok) { alert('✅ Berhasil diganti! Reload halaman.'); location.reload(); }
+      };
+      reader.readAsArrayBuffer(file);
+    };
+    input.click();
+  };
+
+  function initAdminPanel() {
+    if (!isAdmin) return;
+
+    const panel = document.createElement('div');
+    panel.id = 'adminControlPanel';
+    panel.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 340px;
+      background: white;
+      border: 2px solid #00529C;
+      border-radius: 8px;
+      padding: 14px;
+      z-index: 99999;
+      box-shadow: 0 8px 32px rgba(0,82,156,0.2);
+      font-family: Inter, sans-serif;
+      font-size: 12px;
+    `;
+
+    const locked = isConfigLocked();
+    const backups = JSON.parse(localStorage.getItem(CONFIG_BACKUP_KEY) || '[]');
+
+    panel.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px;">
+        <h3 style="margin: 0; color: #00529C; font-size: 13px; font-weight: 600;">⚙️ ADMIN PANEL</h3>
+        <span style="font-size: 10px; padding: 2px 6px; background: ${locked ? '#E30613' : '#10b981'}; color: white; border-radius: 3px; font-weight: 600;">
+          ${locked ? '🔒 LOCKED' : '🔓 UNLOCKED'}
+        </span>
+        <button onclick="document.getElementById('adminControlPanel')?.remove()" style="background: none; border: none; cursor: pointer; font-size: 18px; color: #6b7280;">×</button>
+      </div>
+
+      <div style="margin-bottom: 10px; padding: 8px; background: #f0f4f8; border-radius: 4px;">
+        <p style="margin: 0 0 6px 0; color: #00529C; font-weight: 600; font-size: 11px;">📸 PROJECTS (${backups.length} backups)</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+          <button onclick="window.saveConfigBackup('Manual'); alert('✅ Backup')" style="padding: 6px; font-size: 11px; background: #00529C; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">💾 Backup</button>
+          <button onclick="window.renderProjects()" style="padding: 6px; font-size: 11px; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">🔄 Reload</button>
+          ${backups.length > 0 ? `<button onclick="window.restoreConfigBackup(${backups.length - 1})" style="padding: 6px; font-size: 11px; background: #f59e0b; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">↶ Undo</button>` : ''}
+          <button onclick="window.showBackupList()" style="padding: 6px; font-size: 11px; background: #8b5cf6; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">📋 List</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 10px; padding: 8px; background: #e0f2f1; border-radius: 4px;">
+        <p style="margin: 0 0 6px 0; color: #00695c; font-weight: 600; font-size: 11px;">🖼️ EDIT SECTIONS</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+          <button onclick="window.uploadSectionImage('hero')" style="padding: 4px; font-size: 10px; background: #00695c; color: white; border:none; border-radius:3px; cursor:pointer;">Hero</button>
+          <button onclick="window.uploadSectionImage('about')" style="padding: 4px; font-size: 10px; background: #00695c; color: white; border:none; border-radius:3px; cursor:pointer;">Tentang</button>
+          <button onclick="window.openBlogAdminModal()" style="padding: 4px; font-size: 10px; background: #00695c; color: white; border:none; border-radius:3px; cursor:pointer; grid-column: span 2;">Tambah Artikel Blog</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 10px; padding: 8px; background: #fff3cd; border-radius: 4px;">
+        <p style="margin: 0 0 6px 0; color: #00529C; font-weight: 600; font-size: 11px;">🔐 LOCK SETTINGS</p>
+        <button onclick="${locked ? "window.unlockConfig()" : "window.lockConfig()"}" style="width: 100%; padding: 6px; font-size: 11px; background: ${locked ? '#E30613' : '#f59e0b'}; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">
+          ${locked ? '🔓 UNLOCK' : '🔒 LOCK'}
+        </button>
+      </div>
+
+      <div style="margin-bottom: 10px; padding: 8px; background: #fee; border-radius: 4px;">
+        <p style="margin: 0 0 6px 0; color: #00529C; font-weight: 600; font-size: 11px;">⚡ QUICK TOOLS</p>
+        <button onclick="window.open('images.json')" style="width: 100%; padding: 6px; font-size: 11px; background: #00529C; color: white; border: none; border-radius: 4px; cursor: pointer; margin-bottom: 4px;">📄 Edit JSON</button>
+        <button onclick="fetch('images.json').then(r=>r.json()).then(d=>console.log(d))" style="width: 100%; padding: 6px; font-size: 11px; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer;">📊 Console</button>
+      </div>
+    `;
+
+    document.body.appendChild(panel);
+  }
+
+  window.showBackupList = function() {
+    const backups = JSON.parse(localStorage.getItem(CONFIG_BACKUP_KEY) || '[]');
+    const list = backups.map((b, i) => `${i + 1}. ${b.label} (${new Date(b.timestamp).toLocaleString()})`).join('\n');
+    alert('📋 BACKUPS:\n\n' + (list || 'Tidak ada backup'));
+  };
+
+  // Expose functions to window
+  window.saveConfigBackup = saveConfigBackup;
+  window.restoreConfigBackup = restoreConfigBackup;
+  window.lockConfig = lockConfig;
+  window.unlockConfig = unlockConfig;
+  window.isConfigLocked = isConfigLocked;
+  window.renderProjects = renderProjects;
+
+  // Init admin panel setelah 500ms
+  setTimeout(() => {
+    if (isAdmin) {
+      saveConfigBackup('Auto-backup on load');
+      initAdminPanel();
+      console.log('%cAdmin Panel Ready', 'color: #10b981; font-weight: bold;');
+    }
+  }, 500);
+
+})();
 </script>
-
-<!-- Watermark Prevention -->
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="robots" content="index, follow">
-<meta name="author" content="CV. Maisan Bintang Muda">
-<link rel="canonical" href="https://maisanbintangmuda.com">
-
 </body>
 </html>

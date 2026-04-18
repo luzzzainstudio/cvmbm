@@ -1,7 +1,10 @@
 [build]
   publish = "."
   command = ""
+  functions = "netlify/functions"
 
+# Redirect ini memastikan jika user mengakses URL seperti /tentang (tanpa #), 
+# mereka tetap akan diarahkan ke index.html sehingga JS bisa menangani rutenya.
 [[redirects]]
   from = "/*"
   to = "/index.html"
@@ -17,3 +20,9 @@
   [[headers.values]]
     key = "X-XSS-Protection"
     value = "1; mode=block"
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
